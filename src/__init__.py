@@ -1,14 +1,11 @@
-# Machine Learning Project Source Code
+"""Machine Learning Course Project - Source Package.
 
-## Structure
+Modules:
+    preprocessing: Data cleaning and preprocessing utilities
+    features: Feature engineering and selection
+"""
 
-- `preprocessing/` - Data cleaning and preprocessing utilities
-- `features/` - Feature engineering and selection
-- `utils/` - Helper functions and utilities
+from . import preprocessing
+from . import features
 
-## Usage
-
-```python
-from src.preprocessing import clean_data
-from src.features import extract_features
-```
+__all__ = ["preprocessing", "features"]
