@@ -129,7 +129,8 @@ def display_image(image_vec: np.ndarray, ax=None):
     """
     import matplotlib.pyplot as plt
     
-    img = image_vec.reshape(28, 28)
+    # Transpose because MATLAB stores column-major order
+    img = image_vec.reshape(28, 28).T
     
     if ax is None:
         plt.figure(figsize=(3, 3))
