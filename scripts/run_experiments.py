@@ -9,9 +9,10 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Add src to path
-sys.path.insert(0, str(Path(__file__).parent / "src"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from src.experiments import Experiment
+from src.utils import resolve_run_dir, setup_run_logging
 
 
 def run_all_experiments(exp: Experiment):
@@ -94,32 +95,37 @@ def run_all_experiments(exp: Experiment):
     return results_summary
 
 
-def main():
+def main(output_dir: Path = None):
     print("=" * 90)
     print("CS5487 - Digit Classification Experiments")
     print("Team: Yikai LAI, Zhang Yao")
     print("=" * 90)
-    
+
     # Initialize experiment
-    data_path = Path(__file__).parent / "data" / "raw" / "digits4000.mat"
-    
+    data_path = Path(__file__).parent.parent / "data" / "raw" / "MINIST" / "digits4000.mat"
+
     if not data_path.exists():
         print(f"\n⚠️  Data file not found: {data_path}")
-        print("Please download digits4000.mat and place it in data/raw/")
+        print("Please download digits4000.mat and place it in data/raw/MINIST/")
         return
-    
+
     exp = Experiment(data_path)
-    
+
     # Run all experiments
     run_all_experiments(exp)
-    
+
+    if output_dir is None:
+        output_dir = Path(__file__).parent.parent / "experiments" / "logs"
+    logs_dir = output_dir / "logs"
+    logs_dir.mkdir(parents=True, exist_ok=True)
+
     # Save results
-    results_path = Path(__file__).parent / "experiments" / "logs" / "results.json"
+    results_path = logs_dir / "results.json"
     exp.save_results(results_path)
     print(f"\n✅ Detailed results saved to {results_path}")
-    
+
     # Also save summary
-    summary_path = Path(__file__).parent / "experiments" / "logs" / "summary.txt"
+    summary_path = logs_dir / "summary.txt"
     with open(summary_path, 'w') as f:
         f.write("CS5487 - Digit Classification Results\n")
         f.write("Team: Yikai LAI, Zhang Yao\n")
@@ -130,4 +136,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--run-dir", type=str, default=None, help="Result directory (auto-generated if omitted)")
+    args = parser.parse_args()
+    output_dir = resolve_run_dir(args.run_dir)
+    with setup_run_logging(output_dir):
+        main(output_dir)

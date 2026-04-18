@@ -47,11 +47,9 @@ data/processed/*
 models/*
 !models/.gitkeep
 
-# Results
-results/figures/*
-results/metrics/*
-!results/figures/.gitkeep
-!results/metrics/.gitkeep
+# Results (timestamped directories under results/<git-hash>/<ts>/)
+results/*
+!results/.gitkeep
 
 # Experiment logs
 experiments/logs/*
@@ -74,3 +72,10 @@ htmlcov/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# LaTeX
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz

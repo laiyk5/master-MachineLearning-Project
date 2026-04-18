@@ -10,6 +10,7 @@ import pickle
 
 from src.data_loader import load_digits_data, get_train_test_split, normalize_features
 from src.classifiers import OneVsAllClassifier, PCATransform, get_classifier
+from src.utils import resolve_run_dir, setup_run_logging
 
 
 class SampleErrorAnalyzer:
@@ -365,18 +366,20 @@ class SampleErrorAnalyzer:
         return report
 
 
-def main():
+def main(output_dir: Path = None):
     """Run sample-level error analysis."""
     # Setup paths
-    data_path = Path(__file__).parent / "data" / "raw" / "digits4000.mat"
-    output_dir = Path(__file__).parent / "results" / "figures"
-    output_dir.mkdir(parents=True, exist_ok=True)
-    
+    data_path = Path(__file__).parent.parent / "data" / "raw" / "MINIST" / "digits4000.mat"
+    if output_dir is None:
+        output_dir = Path(__file__).parent.parent / "results" / "figures"
+    figures_dir = output_dir / "figures"
+    figures_dir.mkdir(parents=True, exist_ok=True)
+
     analyzer = SampleErrorAnalyzer(data_path)
-    
+
     # Run multiple classifiers
     print("Running classifiers to collect predictions...")
-    
+
     configs = [
         ('KNN-1', 'knn', {'n_neighbors': 1}, 'none', None, False),
         ('KNN-3', 'knn', {'n_neighbors': 3}, 'none', None, False),
@@ -384,35 +387,41 @@ def main():
         ('SVM-RBF-PCA50', 'svm_rbf', {'C': 1.0, 'gamma': 'scale'}, 'scale255', 50, True),
         ('QDA-PCA50', 'qda', {'solver': 'svd'}, 'none', 50, False),
     ]
-    
+
     for name, clf, params, norm, pca, ova in configs:
         print(f"  Running {name}...")
         analyzer.run_classifier_collect_predictions(name, clf, params, norm, pca, ova)
-    
+
     print("\nAnalyzing sample-level errors...")
-    
+
     # Generate report
     report = analyzer.generate_sample_error_report(
-        save_path=output_dir / "sample_error_report.txt"
+        save_path=figures_dir / "sample_error_report.txt"
     )
     print("\n" + report)
-    
+
     # Visualize hard samples
     print("\nVisualizing hard samples...")
     analyzer.visualize_hard_samples(
         max_samples=15,
-        save_path=output_dir / "hard_samples.png"
+        save_path=figures_dir / "hard_samples.png"
     )
-    
+
     # Visualize medium samples
     print("Visualizing medium samples...")
     analyzer.visualize_medium_samples(
         max_samples=12,
-        save_path=output_dir / "medium_samples.png"
+        save_path=figures_dir / "medium_samples.png"
     )
-    
-    print(f"\nAll outputs saved to: {output_dir}")
+
+    print(f"\nAll outputs saved to: {figures_dir}")
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--run-dir", type=str, default=None, help="Result directory (auto-generated if omitted)")
+    args = parser.parse_args()
+    output_dir = resolve_run_dir(args.run_dir)
+    with setup_run_logging(output_dir):
+        main(output_dir)

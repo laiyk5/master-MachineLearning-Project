@@ -6,6 +6,7 @@ Modules:
     experiments: Experiment runner and evaluation
     preprocessing: Data cleaning utilities
     features: Feature engineering
+    utils: Result directory management and logging utilities
 """
 
 from . import data_loader
@@ -13,11 +14,13 @@ from . import classifiers
 from . import experiments
 from . import preprocessing
 from . import features
+from . import utils
 
 __all__ = [
     "data_loader",
-    "classifiers", 
+    "classifiers",
     "experiments",
     "preprocessing",
     "features",
+    "utils",
 ]

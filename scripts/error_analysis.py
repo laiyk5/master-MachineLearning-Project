@@ -11,6 +11,7 @@ from typing import Dict, List, Tuple
 
 from src.data_loader import load_digits_data, get_train_test_split, normalize_features, display_image
 from src.classifiers import OneVsAllClassifier, PCATransform, get_classifier
+from src.utils import resolve_run_dir, setup_run_logging
 
 
 class ErrorAnalyzer:
@@ -284,17 +285,19 @@ class ErrorAnalyzer:
         return report
 
 
-def main():
+def main(output_dir: Path = None):
     """Run error analysis on all classifiers."""
     import os
-    
+
     # Setup paths
-    data_path = Path(__file__).parent / "data" / "raw" / "digits4000.mat"
-    output_dir = Path(__file__).parent / "results" / "figures"
-    output_dir.mkdir(parents=True, exist_ok=True)
-    
+    data_path = Path(__file__).parent.parent / "data" / "raw" / "MINIST" / "digits4000.mat"
+    if output_dir is None:
+        output_dir = Path(__file__).parent.parent / "results" / "figures"
+    figures_dir = output_dir / "figures"
+    figures_dir.mkdir(parents=True, exist_ok=True)
+
     analyzer = ErrorAnalyzer(data_path)
-    
+
     # Define classifiers to analyze (based on existing results)
     configs = [
         ('knn', {'n_neighbors': 1}, 'none', None, False),
@@ -304,42 +307,48 @@ def main():
         ('qda', {'solver': 'svd'}, 'none', 50, False),
         ('logistic', {'C': 1.0, 'max_iter': 1000}, 'standard', None, True),
     ]
-    
+
     print("Running error analysis...")
     results = []
-    
+
     for clf_name, params, norm, pca, ova in configs:
         print(f"  Analyzing {clf_name} (pca={pca})...")
         result = analyzer.run_classifier(clf_name, params, norm, pca, ova)
         results.append(result)
-        
+
         # Individual confusion matrix
         safe_name = f"{clf_name}_pca{pca if pca else 'none'}"
         analyzer.plot_confusion_matrix(
-            result, 
-            save_path=output_dir / f"confusion_matrix_{safe_name}.png"
+            result,
+            save_path=figures_dir / f"confusion_matrix_{safe_name}.png"
         )
-        
+
         # Most confused pairs
         analyzer.plot_most_confused_pairs(
             result,
             top_n=10,
-            save_path=output_dir / f"confused_pairs_{safe_name}.png"
+            save_path=figures_dir / f"confused_pairs_{safe_name}.png"
         )
-    
+
     # Comparison plots
     print("\nGenerating comparison plots...")
-    analyzer.plot_error_comparison(results, save_path=output_dir / "confusion_comparison.png")
-    analyzer.plot_per_digit_accuracy(results, save_path=output_dir / "per_digit_accuracy.png")
-    
+    analyzer.plot_error_comparison(results, save_path=figures_dir / "confusion_comparison.png")
+    analyzer.plot_per_digit_accuracy(results, save_path=figures_dir / "per_digit_accuracy.png")
+
     # Generate report
     print("\nGenerating report...")
-    report = analyzer.generate_error_report(results, save_path=output_dir / "error_report.txt")
+    report = analyzer.generate_error_report(results, save_path=figures_dir / "error_report.txt")
     print("\n" + report)
-    
-    print(f"\nAll figures saved to: {output_dir}")
+
+    print(f"\nAll figures saved to: {figures_dir}")
     # plt.show()  # Disabled for non-interactive mode
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--run-dir", type=str, default=None, help="Result directory (auto-generated if omitted)")
+    args = parser.parse_args()
+    output_dir = resolve_run_dir(args.run_dir)
+    with setup_run_logging(output_dir):
+        main(output_dir)
