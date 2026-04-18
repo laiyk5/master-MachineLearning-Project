@@ -23,6 +23,7 @@ from src.data_loader import (
     evaluate_accuracy,
 )
 from src.classifiers import OneVsAllClassifier, PCATransform, get_classifier
+from src.augmentation import augment_training_data
 from src.utils import resolve_run_dir, setup_run_logging
 
 
@@ -30,15 +31,16 @@ CHALLENGE_MAT = Path(__file__).parent.parent / "data" / "raw" / "challenge" / "c
 MNIST_MAT = Path(__file__).parent.parent / "data" / "raw" / "MINIST" / "digits4000.mat"
 
 # Same experiment configs as run_experiments.py
+# (name, classifier, params, normalize, pca, one_vs_all, augment, augment_strength)
 EXPERIMENTS = [
-    ("1-NN Baseline", "knn", {"n_neighbors": 1}, "none", None, False),
-    ("3-NN", "knn", {"n_neighbors": 3}, "none", None, False),
-    ("5-NN", "knn", {"n_neighbors": 5}, "none", None, False),
-    ("LDA", "lda", {}, "none", None, False),
-    ("QDA + PCA50", "qda", {"solver": "svd"}, "none", 50, False),
-    ("SVM-Linear", "svm_linear", {"C": 1.0}, "scale255", None, True),
-    ("SVM-RBF", "svm_rbf", {"C": 1.0, "gamma": "scale"}, "scale255", None, True),
-    ("SVM-RBF + PCA50", "svm_rbf", {"C": 1.0, "gamma": "scale"}, "scale255", 50, True),
+    ("1-NN Baseline", "knn", {"n_neighbors": 1}, "none", None, False, 0, "mild"),
+    ("3-NN", "knn", {"n_neighbors": 3}, "none", None, False, 0, "mild"),
+    ("5-NN", "knn", {"n_neighbors": 5}, "none", None, False, 0, "mild"),
+    ("LDA", "lda", {}, "none", None, False, 0, "mild"),
+    ("QDA + PCA50", "qda", {"solver": "svd"}, "none", 50, False, 0, "mild"),
+    ("SVM-Linear", "svm_linear", {"C": 1.0}, "scale255", None, True, 0, "mild"),
+    ("SVM-RBF", "svm_rbf", {"C": 1.0, "gamma": "scale"}, "scale255", None, True, 0, "mild"),
+    ("SVM-RBF + PCA50", "svm_rbf", {"C": 1.0, "gamma": "scale"}, "scale255", 50, True, 0, "mild"),
     (
         "Logistic Regression",
         "logistic",
@@ -46,7 +48,12 @@ EXPERIMENTS = [
         "standard",
         None,
         True,
+        0,
+        "mild",
     ),
+    # Zhang's improved configurations
+    ("SVM-RBF + PCA35 + Aug", "svm_rbf", {"C": 4, "gamma": "scale"}, "scale255", 35, True, 3, "mild"),
+    ("SVM-RBF + PCA50 + Aug", "svm_rbf", {"C": 4, "gamma": "scale"}, "scale255", 50, True, 3, "mild"),
 ]
 
 
@@ -76,8 +83,16 @@ def train_and_evaluate(
     normalize: str,
     pca_components: int | None,
     use_one_vs_all: bool,
+    augment: int = 0,
+    augment_strength: str = "mild",
 ):
     """Train on MNIST training split, evaluate on challenge data."""
+
+    # Data augmentation (before normalization/PCA)
+    if augment > 0:
+        X_train, y_train = augment_training_data(
+            X_train, y_train, n_augment=augment, strength=augment_strength
+        )
 
     # Normalize (fit on train, apply to both)
     if normalize != "none":
@@ -124,7 +139,7 @@ def main(output_dir: Path = None):
 
     results_summary = []
 
-    for name, clf_name, params, norm, pca, ova in EXPERIMENTS:
+    for name, clf_name, params, norm, pca, ova, aug, aug_s in EXPERIMENTS:
         trial_accs = []
 
         for trial in [0, 1]:
@@ -139,6 +154,8 @@ def main(output_dir: Path = None):
                 norm,
                 pca,
                 ova,
+                augment=aug,
+                augment_strength=aug_s,
             )
             trial_accs.append(acc)
 
@@ -155,7 +172,7 @@ def main(output_dir: Path = None):
             }
         )
 
-        marker = "🏆 " if mean_acc > 0.70 else "   "
+        marker = "🏆 " if mean_acc > 0.75 else "   "
         print(
             f"{marker}{name:<22} Trial1: {trial_accs[0]:.4f}  Trial2: {trial_accs[1]:.4f}  "
             f"Mean: {mean_acc:.4f} ± {std_acc:.4f}"

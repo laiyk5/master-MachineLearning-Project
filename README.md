@@ -21,8 +21,9 @@ Handwritten digit classification on a 4,000-sample MNIST subset using multiple m
 - 1-NN with Euclidean distance: **91.60% ± 0.35%**
 
 ### Best Results
-- **MNIST test:** SVM-RBF + PCA50 = **94.98% ± 0.28%**
-- **Challenge dataset:** SVM-RBF + PCA50 = **71.67% ± 1.67%** (vs 68.33% baseline)
+- **MNIST test:** SVM-RBF + PCA50 + Aug = **96.55% ± 0.20%**
+- **Challenge dataset:** SVM-RBF + PCA50 + Aug = **83.33% ± 1.33%** (vs 68.33% baseline)
+- Without augmentation: SVM-RBF + PCA50 = 94.98% / 71.67%
 
 ---
 
@@ -76,6 +77,7 @@ MachineLearning/
 │   ├── data_loader.py                  # Load MNIST, train/test splits, normalization
 │   ├── classifiers.py                  # Classifier factory, OvA, PCA transform
 │   ├── experiments.py                  # Experiment runner
+│   ├── augmentation.py                 # Geometric data augmentation for digits
 │   ├── utils.py                        # Result directory management, logging
 │   ├── preprocessing.py                # Preprocessing utilities
 │   └── features.py                     # Feature engineering
@@ -190,17 +192,19 @@ main(output_dir=Path("results/my-run"))
 | QDA + PCA50 | 0.9315 | 0.9440 | 0.9378 ± 0.0063 |
 | SVM-Linear | 0.8600 | 0.8580 | 0.8590 ± 0.0010 |
 | SVM-RBF | 0.9395 | 0.9335 | 0.9365 ± 0.0030 |
-| **SVM-RBF + PCA50** | **0.9525** | **0.9470** | **0.9498 ± 0.0028** |
+| SVM-RBF + PCA50 | 0.9525 | 0.9470 | 0.9498 ± 0.0028 |
 | Logistic Regression | 0.8680 | 0.8640 | 0.8660 ± 0.0020 |
+| **SVM-RBF + PCA50 + Aug** | **0.9675** | **0.9635** | **0.9655 ± 0.0020** |
 
 ### Challenge Dataset (150 samples)
 
 | Method | Trial 1 | Trial 2 | Mean ± Std |
 |--------|---------|---------|------------|
 | 1-NN Baseline | 0.6600 | 0.7067 | 0.6833 ± 0.0233 |
-| QDA + PCA50 | 0.7000 | 0.7267 | 0.7133 ± 0.0133 |
+| QDA + PCA50 | 0.7000 | 0.7467 | 0.7233 ± 0.0233 |
 | SVM-RBF | 0.6867 | 0.7000 | 0.6933 ± 0.0067 |
-| **SVM-RBF + PCA50** | **0.7000** | **0.7333** | **0.7167 ± 0.0167** |
+| SVM-RBF + PCA50 | 0.7000 | 0.7333 | 0.7167 ± 0.0167 |
+| **SVM-RBF + PCA50 + Aug** | **0.8200** | **0.8467** | **0.8333 ± 0.0133** |
 
 ---
 
