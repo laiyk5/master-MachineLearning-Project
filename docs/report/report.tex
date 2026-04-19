@@ -25,7 +25,7 @@
 \title{\textbf{Handwritten Digit Classification on MNIST Subset}\\
 \large CS5487 Machine Learning -- Course Project Report}
 \author{Yikai LAI \\ Zhang Yao}
-\date{April 2025}
+\date{April 2026}
 
 \begin{document}
 
@@ -158,10 +158,10 @@ Table~\ref{tab:mnist-results} reports the accuracy of each method on the two pre
 3-NN & 0.9180 & 0.9060 & 0.9120 $\pm$ 0.0060 \\
 5-NN & 0.9170 & 0.9095 & 0.9133 $\pm$ 0.0038 \\
 LDA & 0.7845 & 0.7795 & 0.7820 $\pm$ 0.0025 \\
-QDA + PCA50 & 0.9315 & 0.9440 & 0.9378 $\pm$ 0.0063 \\
+QDA + PCA50 & 0.9330 & 0.9430 & 0.9380 $\pm$ 0.0050 \\
 SVM-Linear & 0.8600 & 0.8580 & 0.8590 $\pm$ 0.0010 \\
 SVM-RBF & 0.9395 & 0.9335 & 0.9365 $\pm$ 0.0030 \\
-SVM-RBF + PCA50 & 0.9525 & 0.9470 & 0.9498 $\pm$ 0.0028 \\
+SVM-RBF + PCA50 & 0.9510 & 0.9470 & 0.9490 $\pm$ 0.0020 \\
 Logistic Regression & 0.8680 & 0.8640 & 0.8660 $\pm$ 0.0020 \\
 SVM-RBF + PCA35 + Aug & 0.9650 & 0.9625 & 0.9637 $\pm$ 0.0012 \\
 \textbf{SVM-RBF + PCA50 + Aug} & \textbf{0.9675} & \textbf{0.9635} & \textbf{0.9655 $\pm$ 0.0020} \\
@@ -171,10 +171,10 @@ SVM-RBF + PCA35 + Aug & 0.9650 & 0.9625 & 0.9637 $\pm$ 0.0012 \\
 
 \textbf{Key observations:}
 \begin{enumerate}[noitemsep]
-    \item \textbf{SVM-RBF + PCA50 + Aug} achieves the highest mean accuracy (96.55\%), outperforming the 1-NN baseline by 4.95 percentage points and the non-augmented SVM-RBF + PCA50 by 1.57 percentage points.
+    \item \textbf{SVM-RBF + PCA50 + Aug} achieves the highest mean accuracy (96.55\%), outperforming the 1-NN baseline by 4.95 percentage points and the non-augmented SVM-RBF + PCA50 by 1.65 percentage points.
     \item Data augmentation provides substantial gains: both augmented SVM variants exceed 96\%, while their non-augmented counterparts plateau around 94--95\%. Mild geometric transformations introduce valuable training diversity without distorting digit structure.
-    \item PCA helps SVM-RBF significantly: accuracy improves from 93.65\% (no PCA) to 94.98\% (PCA50). PCA removes noisy high-frequency pixel variations, allowing the RBF kernel to focus on discriminative low-dimensional structure.
-    \item QDA also benefits from PCA (93.78\%), as the full 784-dimensional covariance estimation is ill-posed with only 2,000 training samples.
+    \item PCA helps SVM-RBF significantly: accuracy improves from 93.65\% (no PCA) to 94.90\% (PCA50). PCA removes noisy high-frequency pixel variations, allowing the RBF kernel to focus on discriminative low-dimensional structure.
+    \item QDA also benefits from PCA (93.80\%), as the full 784-dimensional covariance estimation is ill-posed with only 2,000 training samples.
     \item LDA performs poorly (78.20\%), suggesting the shared-covariance Gaussian assumption is too restrictive for this data.
     \item SVM-Linear (85.90\%) and Logistic Regression (86.60\%) are competitive but trail non-linear methods, indicating that digit classes are not linearly separable in pixel space.
     \item $k$-NN with $k > 1$ does not improve over 1-NN; in fact, 3-NN and 5-NN slightly underperform, suggesting that the nearest neighbor alone is the most reliable predictor in this feature space.
@@ -196,7 +196,7 @@ The challenge dataset contains 150 handwritten digits written by the course inst
 3-NN & 0.6667 & 0.6400 & 0.6533 $\pm$ 0.0133 \\
 5-NN & 0.6333 & 0.6467 & 0.6400 $\pm$ 0.0067 \\
 LDA & 0.4533 & 0.4200 & 0.4367 $\pm$ 0.0167 \\
-QDA + PCA50 & 0.7000 & 0.7467 & 0.7233 $\pm$ 0.0233 \\
+QDA + PCA50 & 0.6933 & 0.7267 & 0.7100 $\pm$ 0.0167 \\
 SVM-Linear & 0.6133 & 0.5533 & 0.5833 $\pm$ 0.0300 \\
 SVM-RBF & 0.6867 & 0.7000 & 0.6933 $\pm$ 0.0067 \\
 SVM-RBF + PCA50 & 0.7000 & 0.7333 & 0.7167 $\pm$ 0.0167 \\
@@ -251,7 +251,7 @@ The MNIST subset is perfectly balanced with 400 samples per digit class (10.0\% 
 
 \section{Discussion}
 
-\textbf{Effect of data augmentation.} Mild geometric augmentation (rotation $\pm 5°$, translation $\pm 1$px, scale $0.95$--$1.05$, $\times 3$ copies per sample) is the single most impactful improvement in this study. It raises MNIST test accuracy from 94.98\% to 96.55\% and challenge accuracy from 71.67\% to 83.33\%. The augmentation introduces controlled diversity into the training set, helping the model learn features invariant to small pose variations. Importantly, stronger augmentation with noise and brightness changes actually degrades performance, confirming that excessive distortion destroys useful signal. The optimal augmentation is light enough to preserve digit structure while providing regularization benefits.
+\textbf{Effect of data augmentation.} Mild geometric augmentation (rotation $\pm 5°$, translation $\pm 1$px, scale $0.95$--$1.05$, $\times 3$ copies per sample) is the single most impactful improvement in this study. It raises MNIST test accuracy from 94.90\% to 96.55\% and challenge accuracy from 71.67\% to 83.33\%. The augmentation introduces controlled diversity into the training set, helping the model learn features invariant to small pose variations. Importantly, stronger augmentation with noise and brightness changes actually degrades performance, confirming that excessive distortion destroys useful signal. The optimal augmentation is light enough to preserve digit structure while providing regularization benefits.
 
 \textbf{Effect of PCA.} PCA consistently improves non-linear methods (SVM-RBF and QDA). For the augmented SVM, reducing from 50 to 35 components yields nearly identical performance, suggesting that 35 components capture sufficient discriminative information. The 35--50 components explain approximately 80--83\% of the variance. By discarding high-frequency noise and redundancy in the 784-dimensional pixel space, PCA allows the classifiers to operate in a more structured, lower-dimensional manifold where class separation is cleaner.
 
