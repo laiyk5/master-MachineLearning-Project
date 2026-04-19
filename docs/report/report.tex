@@ -24,7 +24,7 @@
 % Title info
 \title{\textbf{Handwritten Digit Classification on MNIST Subset}\\
 \large CS5487 Machine Learning -- Course Project Report}
-\author{LAI Yikai(59563061) \\ Zhang Yao(59843206)}
+\author{LAI Yikai\thanks{Student ID: 59563061, M.Sc. in Computer Science, City University of Hong Kong.} \and Zhang Yao\thanks{Student ID: 59843206, M.Sc. in Computer Science, City University of Hong Kong.}}
 \date{April 2026}
 
 \begin{document}
@@ -90,7 +90,7 @@ We use $L_2$-regularized multinomial logistic regression with $C = 1.0$ and a ma
 \subsubsection{Data Augmentation}
 To improve generalization across different handwriting styles, we apply controlled geometric transformations to training images before normalization and PCA:
 \begin{itemize}[noitemsep]
-    \item \textbf{Rotation}: random angle in $[-5°, +5°]$ (mild), $[-10°, +10°]$ (medium), or $[-15°, +15°]$ (strong)
+    \item \textbf{Rotation}: random angle in $[-5^\circ, +5^\circ]$ (mild), $[-10^\circ, +10^\circ]$ (medium), or $[-15^\circ, +15^\circ]$ (strong)
     \item \textbf{Translation}: random shift of $\pm 1$px (mild), $\pm 2$px (medium), or $\pm 3$px (strong)
     \item \textbf{Scaling}: random scale factor $0.95$--$1.05$ (mild), $0.90$--$1.10$ (medium), or $0.85$--$1.15$ (strong)
     \item \textbf{Strong mode}: additional Gaussian noise and brightness adjustment
@@ -251,7 +251,7 @@ Medium augmentation $\times$7 & 97.61\% & 0.13\% \\
 
 \textbf{Key findings:}
 \begin{itemize}[noitemsep]
-    \item \textbf{Mild augmentation is optimal.} The $\pm 5°$ rotation, $\pm 1$px translation, and $0.95$--$1.05$ scaling preserve digit structure while providing regularization benefits.
+    \item \textbf{Mild augmentation is optimal.} The $\pm 5^\circ$ rotation, $\pm 1$px translation, and $0.95$--$1.05$ scaling preserve digit structure while providing regularization benefits.
     \item \textbf{Strong augmentation hurts.} Excessive distortion (noise, brightness changes, large rotations) degrades CV accuracy to 60.47\%, confirming that destructive augmentation destroys useful signal.
     \item Medium augmentation ($\times$3 and $\times$5) improves over no augmentation but underperforms mild augmentation, suggesting that even moderate transformations introduce too much variance for this dataset.
 \end{itemize}
@@ -319,7 +319,7 @@ The MNIST subset is perfectly balanced with 400 samples per digit class (10.0\% 
 
 \section{Discussion}
 
-\textbf{Effect of data augmentation.} Mild geometric augmentation (rotation $\pm 5°$, translation $\pm 1$px, scale $0.95$--$1.05$, $\times 3$ copies per sample) is the single most impactful improvement in this study. It raises MNIST test accuracy from 94.90\% to 96.55\% and challenge accuracy from 71.67\% to 83.33\%. The augmentation introduces controlled diversity into the training set, helping the model learn features invariant to small pose variations. Importantly, stronger augmentation with noise and brightness changes actually degrades performance, confirming that excessive distortion destroys useful signal. The optimal augmentation is light enough to preserve digit structure while providing regularization benefits.
+\textbf{Effect of data augmentation.} Mild geometric augmentation (rotation $\pm 5^\circ$, translation $\pm 1$px, scale $0.95$--$1.05$, $\times 3$ copies per sample) is the single most impactful improvement in this study. It raises MNIST test accuracy from 94.90\% to 96.55\% and challenge accuracy from 71.67\% to 83.33\%. The augmentation introduces controlled diversity into the training set, helping the model learn features invariant to small pose variations. Importantly, stronger augmentation with noise and brightness changes actually degrades performance, confirming that excessive distortion destroys useful signal. The optimal augmentation is light enough to preserve digit structure while providing regularization benefits.
 
 \textbf{Effect of PCA.} PCA consistently improves non-linear methods (SVM-RBF and QDA). For the augmented SVM, reducing from 50 to 35 components yields nearly identical performance, suggesting that 35 components capture sufficient discriminative information. The 35--50 components explain approximately 80--83\% of the variance. By discarding high-frequency noise and redundancy in the 784-dimensional pixel space, PCA allows the classifiers to operate in a more structured, lower-dimensional manifold where class separation is cleaner.
 
@@ -344,7 +344,7 @@ We conducted a comprehensive empirical evaluation of eleven classifier configura
 
 \section*{Contribution Statement}
 
-Both group members contributed equally to this project. Yikai LAI was responsible for implementing the experiment pipeline, classifier wrappers, and the unified result management system. Zhang Yao contributed to the experimental design, error analysis scripts, and challenge evaluation. Both members participated in writing the project report and analyzing the results.
+Both group members contributed equally to this project. LAI Yikai was responsible for implementing the experiment pipeline, classifier wrappers, and the unified result management system. Zhang Yao contributed to the experimental design, error analysis scripts, and challenge evaluation. Both members participated in writing the project report and analyzing the results.
 
 \begin{thebibliography}{9}
 \bibitem{lecun1998gradient}
