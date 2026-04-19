@@ -31,6 +31,11 @@ dev = [
     "mypy>=1.5.0",
     "black>=23.0.0",
 ]
+upperbound = [
+    "torch>=2.0.0",
+    "torchvision>=0.15.0",
+    "transformers>=4.35.0",
+]
 
 [build-system]
 requires = ["hatchling"]
