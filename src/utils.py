@@ -2,6 +2,7 @@
 
 import contextlib
 import datetime
+import json
 import os
 import subprocess
 import sys
@@ -27,6 +28,32 @@ def get_git_short_hash() -> str:
         return "unknown"
 
 
+def get_git_info() -> dict[str, str | bool]:
+    """Return git metadata: short commit hash and dirty workspace status."""
+    repo_root = Path(__file__).parent.parent
+    try:
+        hash_result = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=True,
+            cwd=repo_root,
+        )
+        dirty_result = subprocess.run(
+            ["git", "status", "--porcelain", "scripts/", "src/"],
+            capture_output=True,
+            text=True,
+            check=True,
+            cwd=repo_root,
+        )
+        return {
+            "commit": hash_result.stdout.strip(),
+            "dirty": bool(dirty_result.stdout.strip()),
+        }
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return {"commit": "unknown", "dirty": False}
+
+
 def get_result_dir(
     base_dir: str | Path | None = None,
     run_name: str | None = None,
@@ -34,8 +61,11 @@ def get_result_dir(
     """Create and return a result directory.
 
     Directory format:
-        results/<git-hash>/<run-name>/
-    where <run-name> defaults to a timestamp if not provided.
+        results/<datetime>/
+    where <datetime> defaults to the current timestamp.
+
+    A meta.json is written into the directory with run metadata
+    (timestamp, git commit hash, dirty workspace flag).
 
     Args:
         base_dir: Root directory for results. Defaults to ./results.
@@ -49,11 +79,38 @@ def get_result_dir(
     else:
         base_dir = Path(base_dir)
 
-    short_hash = get_git_short_hash()
     name = run_name or datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    result_dir = base_dir / short_hash / name
+    result_dir = base_dir / name
     result_dir.mkdir(parents=True, exist_ok=True)
+
+    # Write meta.json if it doesn't already exist
+    meta_path = result_dir / "meta.json"
+    if not meta_path.exists():
+        git_info = get_git_info()
+        meta = {
+            "timestamp": datetime.datetime.now().isoformat(),
+            "commit": git_info["commit"],
+            "dirty": git_info["dirty"],
+        }
+        with open(meta_path, "w", encoding="utf-8") as f:
+            json.dump(meta, f, indent=2)
+
     return result_dir
+
+
+def get_script_output_dir(run_dir: Path, script_name: str) -> Path:
+    """Return a script-specific subdirectory inside a run directory.
+
+    Args:
+        run_dir: Base run directory (e.g., from resolve_run_dir).
+        script_name: Name of the script (used as subdirectory name).
+
+    Returns:
+        Path to the script-specific output directory.
+    """
+    path = run_dir / script_name
+    path.mkdir(parents=True, exist_ok=True)
+    return path
 
 
 def resolve_run_dir(run_dir: str | Path | None = None) -> Path:

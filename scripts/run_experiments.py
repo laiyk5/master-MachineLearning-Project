@@ -12,7 +12,7 @@ warnings.filterwarnings('ignore')
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from src.experiments import Experiment
-from src.utils import resolve_run_dir, setup_run_logging
+from src.utils import resolve_run_dir, setup_run_logging, get_script_output_dir
 
 
 def run_all_experiments(exp: Experiment):
@@ -145,6 +145,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--run-dir", type=str, default=None, help="Result directory (auto-generated if omitted)")
     args = parser.parse_args()
-    output_dir = resolve_run_dir(args.run_dir)
+    base_dir = resolve_run_dir(args.run_dir)
+    output_dir = get_script_output_dir(base_dir, Path(__file__).stem)
     with setup_run_logging(output_dir):
         main(output_dir)

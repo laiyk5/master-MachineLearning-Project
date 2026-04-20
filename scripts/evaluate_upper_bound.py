@@ -42,7 +42,7 @@ except ImportError:
     sys.exit(1)
 
 from src.data_loader import load_digits_data, get_train_test_split, evaluate_accuracy
-from src.utils import resolve_run_dir, setup_run_logging
+from src.utils import resolve_run_dir, setup_run_logging, get_script_output_dir
 
 MNIST_MAT = Path(__file__).parent.parent / "data" / "raw" / "MINIST" / "digits4000.mat"
 CHALLENGE_MAT = Path(__file__).parent.parent / "data" / "raw" / "challenge" / "cdigits.mat"
@@ -385,7 +385,8 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    output_dir = resolve_run_dir(args.run_dir)
+    base_dir = resolve_run_dir(args.run_dir)
+    output_dir = get_script_output_dir(base_dir, Path(__file__).stem)
     with setup_run_logging(output_dir):
         evaluate_backend(args.backend, output_dir)
 

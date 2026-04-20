@@ -9,8 +9,7 @@ MNIST Digit Classification (Default Project)
 import numpy as np
 import scipy.io as sio
 from pathlib import Path
-from typing import Tuple, Dict, List
-import pickle
+from typing import Tuple, Dict
 
 
 def load_digits_data(mat_file: str = None) -> Dict:
