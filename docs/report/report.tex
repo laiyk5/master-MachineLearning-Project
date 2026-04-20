@@ -32,7 +32,7 @@
 \maketitle
 
 \begin{abstract}
-This report presents an empirical study of multiple classification methods for handwritten digit recognition on a 4,000-sample MNIST subset. We evaluate eleven classifier configurations across two predefined train/test splits, comparing $k$-Nearest Neighbors ($k$-NN), Linear Discriminant Analysis (LDA), Quadratic Discriminant Analysis (QDA), Support Vector Machines (SVM) with linear and RBF kernels, Logistic Regression, and data-augmented variants. Feature preprocessing techniques including scaling, Principal Component Analysis (PCA), and geometric data augmentation (rotation, translation, scaling) are investigated. Our best model, SVM with RBF kernel combined with PCA to 50 components and mild data augmentation ($\times$3), achieves \textbf{96.55\%} mean accuracy on the MNIST test set, outperforming the 1-NN baseline of 91.60\%. On a held-out challenge dataset of 150 professor-written digits, the augmented model achieves \textbf{83.33\%}, a 15.03 percentage point improvement over the baseline. Detailed error analysis reveals that 1.5\% of samples are ``hard'' (misclassified by all models), while 14.1\% are ``medium'' where model capability differences matter.
+This report presents an empirical study of multiple classification methods for handwritten digit recognition on a 4,000-sample MNIST subset. We compare eleven classifier configurations---including $k$-Nearest Neighbors ($k$-NN), Linear Discriminant Analysis (LDA), Quadratic Discriminant Analysis (QDA), Support Vector Machines (SVM) with linear and RBF kernels, Logistic Regression, and data-augmented variants---using 3-fold stratified cross-validation on the Trial~1 training data for model selection. Feature preprocessing techniques including scaling, Principal Component Analysis (PCA), and geometric data augmentation (rotation, translation, scaling) are investigated. The selected best model, SVM with RBF kernel combined with PCA to 35 components and mild data augmentation ($\times$3), achieves \textbf{96.37\%} mean accuracy on the MNIST test set (Trial~1: 96.50\%, Trial~2: 96.25\%), outperforming the 1-NN baseline of 91.60\%. On a held-out challenge dataset of 150 professor-written digits, the same model achieves \textbf{83.33\%}, a 15.03 percentage point improvement over the baseline. Detailed error analysis reveals that 1.5\% of samples are ``hard'' (misclassified by all models), while 14.0\% are ``medium'' where model capability differences matter.
 \end{abstract}
 
 \section{Introduction}
@@ -62,7 +62,7 @@ The dataset is stored in a MATLAB \texttt{.mat} file with the following fields:
     \item \texttt{testset}: $2 \times 2000$ matrix, two corresponding test index sets.
 \end{itemize}
 
-The dataset defines two fixed train/test splits (Trial~1 and Trial~2). In each trial, 2,000 samples (50\%) are used for training and 2,000 for testing. Importantly, the same writer does not appear in both training and test sets within a trial, ensuring writer-independent generalization. All reported accuracies are averaged over both trials with standard deviation.
+The dataset defines two fixed train/test splits (Trial~1 and Trial~2). In each trial, 2,000 samples (50\%) are used for training and 2,000 for testing. Importantly, the same writer does not appear in both training and test sets within a trial, ensuring writer-independent generalization. To prevent data leakage, model selection is performed exclusively on the Trial~1 training data via 3-fold stratified cross-validation. The selected model is then trained on the full training set and evaluated on the test set separately for each trial; the final reported accuracy is the mean of the two trial test accuracies.
 
 \subsection{Classifiers}
 
@@ -139,11 +139,13 @@ All experiments were implemented in Python using scikit-learn \cite{pedregosa201
     \item Analysis scripts: Error analysis, sample-level error analysis, class distribution visualization, and challenge evaluation.
 \end{itemize}
 
-\textbf{Evaluation Metric.} The primary evaluation metric is \textbf{classification accuracy} (number of correct predictions divided by total number of samples). All reported accuracies are averaged over the two predefined train/test splits with standard deviation.
+\textbf{Evaluation Protocol.} We follow a two-phase evaluation protocol to avoid data leakage:
+\begin{enumerate}[noitemsep]
+    \item \textbf{Phase A (Model Selection):} All candidate methods are compared via 3-fold stratified cross-validation on the \emph{Trial~1 training data only} (2,000 samples). This includes comparing different classifiers, preprocessing pipelines, and hyperparameters. The configuration with the highest CV mean accuracy is selected.
+    \item \textbf{Phase B (Final Evaluation):} The selected model is trained on the full training set of each trial and evaluated on the corresponding test set. The final reported accuracy is the mean of the two trial test accuracies with standard deviation.
+\end{enumerate}
 
-\textbf{Cross-Validation for Parameter Selection.} To avoid tuning parameters on the test set, we use 3-fold stratified cross-validation on the \emph{training data only} to select the optimal data augmentation strategy and SVM hyperparameters. The challenge dataset is completely held out and used only for final reporting.
-
-\textbf{Challenge Dataset.} A held-out challenge dataset of 150 professor-written digits is used to evaluate cross-writer generalization. Models are trained on the MNIST training splits and evaluated on the challenge data \emph{without retraining or parameter tuning}.
+\textbf{Challenge Dataset.} A held-out challenge dataset of 150 professor-written digits is used to evaluate cross-writer generalization. The model selected in Phase~A is trained on each MNIST training split and evaluated on the challenge data \emph{without retraining or parameter tuning}.
 
 Results are managed in a unified directory structure: \texttt{results/<git-hash>/<timestamp>/}, with subdirectories for figures and logs, ensuring reproducibility.
 
@@ -151,40 +153,53 @@ Results are managed in a unified directory structure: \texttt{results/<git-hash>
 
 \subsection{MNIST Subset Classification Results}
 
-Table~\ref{tab:mnist-results} reports the accuracy of each method on the two predefined trials.
+Table~\ref{tab:cv-results} reports the 3-fold stratified cross-validation scores for all candidate methods on the Trial~1 training data. Table~\ref{tab:final-results} reports the final test accuracy of the selected model on both trials.
 
 \begin{table}[H]
 \centering
-\caption{Classification accuracy on the MNIST 4,000-sample subset. Best result in \textbf{bold}.}
-\label{tab:mnist-results}
+\caption{3-fold stratified cross-validation on Trial~1 training data (2,000 samples). Best CV score in \textbf{bold}.}
+\label{tab:cv-results}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Method} & \textbf{Fold 1} & \textbf{Fold 2} & \textbf{CV Mean $\pm$ Std} \\
+\midrule
+1-NN Baseline & 0.9175 & 0.9115 & 0.9065 $\pm$ 0.0116 \\
+3-NN & 0.9115 & 0.8966 & 0.8995 $\pm$ 0.0089 \\
+5-NN & 0.9130 & 0.8906 & 0.8990 $\pm$ 0.0100 \\
+LDA & 0.7271 & 0.7136 & 0.7220 $\pm$ 0.0060 \\
+QDA + PCA50 & 0.9265 & 0.9205 & 0.9220 $\pm$ 0.0021 \\
+SVM-Linear & 0.8441 & 0.8456 & 0.8460 $\pm$ 0.0018 \\
+SVM-RBF & 0.9355 & 0.9265 & 0.9265 $\pm$ 0.0074 \\
+SVM-RBF + PCA50 & 0.9520 & 0.9430 & 0.9425 $\pm$ 0.0080 \\
+Logistic Regression & 0.8396 & 0.8621 & 0.8550 $\pm$ 0.0109 \\
+\textbf{SVM-RBF + PCA35 + Aug} & \textbf{0.9670} & \textbf{0.9565} & \textbf{0.9585 $\pm$ 0.0063} \\
+SVM-RBF + PCA50 + Aug & 0.9670 & 0.9610 & 0.9585 $\pm$ 0.0082 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Final test accuracy of the selected model (SVM-RBF + PCA35 + Aug) on both predefined trials.}
+\label{tab:final-results}
 \begin{tabular}{@{}lccc@{}}
 \toprule
 \textbf{Method} & \textbf{Trial 1} & \textbf{Trial 2} & \textbf{Mean $\pm$ Std} \\
 \midrule
-1-NN Baseline & 0.9135 & 0.9185 & 0.9160 $\pm$ 0.0035 \\
-3-NN & 0.9180 & 0.9060 & 0.9120 $\pm$ 0.0060 \\
-5-NN & 0.9170 & 0.9095 & 0.9133 $\pm$ 0.0038 \\
-LDA & 0.7845 & 0.7795 & 0.7820 $\pm$ 0.0025 \\
-QDA + PCA50 & 0.9330 & 0.9430 & 0.9380 $\pm$ 0.0050 \\
-SVM-Linear & 0.8600 & 0.8580 & 0.8590 $\pm$ 0.0010 \\
-SVM-RBF & 0.9395 & 0.9335 & 0.9365 $\pm$ 0.0030 \\
-SVM-RBF + PCA50 & 0.9510 & 0.9470 & 0.9490 $\pm$ 0.0020 \\
-Logistic Regression & 0.8680 & 0.8640 & 0.8660 $\pm$ 0.0020 \\
-SVM-RBF + PCA35 + Aug & 0.9650 & 0.9625 & 0.9637 $\pm$ 0.0012 \\
-\textbf{SVM-RBF + PCA50 + Aug} & \textbf{0.9675} & \textbf{0.9635} & \textbf{0.9655 $\pm$ 0.0020} \\
+\textbf{SVM-RBF + PCA35 + Aug} & \textbf{0.9650} & \textbf{0.9625} & \textbf{0.9637 $\pm$ 0.0012} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \textbf{Key observations:}
 \begin{enumerate}[noitemsep]
-    \item \textbf{SVM-RBF + PCA50 + Aug} achieves the highest mean accuracy (96.55\%), outperforming the 1-NN baseline by 4.95 percentage points and the non-augmented SVM-RBF + PCA50 by 1.65 percentage points.
-    \item Data augmentation provides substantial gains: both augmented SVM variants exceed 96\%, while their non-augmented counterparts plateau around 94--95\%. Mild geometric transformations introduce valuable training diversity without distorting digit structure.
-    \item PCA helps SVM-RBF significantly: accuracy improves from 93.65\% (no PCA) to 94.90\% (PCA50). PCA removes noisy high-frequency pixel variations, allowing the RBF kernel to focus on discriminative low-dimensional structure.
-    \item QDA also benefits from PCA (93.80\%), as the full 784-dimensional covariance estimation is ill-posed with only 2,000 training samples.
-    \item LDA performs poorly (78.20\%), suggesting the shared-covariance Gaussian assumption is too restrictive for this data.
-    \item SVM-Linear (85.90\%) and Logistic Regression (86.60\%) are competitive but trail non-linear methods, indicating that digit classes are not linearly separable in pixel space.
-    \item $k$-NN with $k > 1$ does not improve over 1-NN; in fact, 3-NN and 5-NN slightly underperform, suggesting that the nearest neighbor alone is the most reliable predictor in this feature space.
+    \item \textbf{SVM-RBF + PCA35 + Aug} is selected by cross-validation (CV mean 95.85\%) and achieves 96.37\% mean test accuracy across both trials, outperforming the 1-NN baseline by 4.77 percentage points.
+    \item Data augmentation provides substantial gains: both augmented SVM variants achieve the top CV scores ($\approx$95.9\%), while their non-augmented counterparts plateau around 94.3\%. Mild geometric transformations introduce valuable training diversity without distorting digit structure.
+    \item PCA helps SVM-RBF significantly: CV accuracy improves from 92.65\% (no PCA) to 94.25\% (PCA50). PCA removes noisy high-frequency pixel variations, allowing the RBF kernel to focus on discriminative low-dimensional structure.
+    \item QDA also benefits from PCA (92.20\% CV), as the full 784-dimensional covariance estimation is ill-posed with only 2,000 training samples.
+    \item LDA performs poorly (72.20\% CV), suggesting the shared-covariance Gaussian assumption is too restrictive for this data.
+    \item SVM-Linear (84.60\% CV) and Logistic Regression (85.50\% CV) are competitive but trail non-linear methods, indicating that digit classes are not linearly separable in pixel space.
+    \item $k$-NN with $k > 1$ does not improve over 1-NN; in fact, 3-NN and 5-NN slightly underperform in CV, suggesting that the nearest neighbor alone is the most reliable predictor in this feature space.
 \end{enumerate}
 
 \subsection{Challenge Dataset Evaluation}
@@ -203,23 +218,23 @@ The challenge dataset contains 150 handwritten digits written by the course inst
 3-NN & 0.6667 & 0.6400 & 0.6533 $\pm$ 0.0133 \\
 5-NN & 0.6333 & 0.6467 & 0.6400 $\pm$ 0.0067 \\
 LDA & 0.4533 & 0.4200 & 0.4367 $\pm$ 0.0167 \\
-QDA + PCA50 & 0.6933 & 0.7267 & 0.7100 $\pm$ 0.0167 \\
+QDA + PCA50 & 0.6867 & 0.7333 & 0.7100 $\pm$ 0.0233 \\
 SVM-Linear & 0.6133 & 0.5533 & 0.5833 $\pm$ 0.0300 \\
 SVM-RBF & 0.6867 & 0.7000 & 0.6933 $\pm$ 0.0067 \\
 SVM-RBF + PCA50 & 0.7000 & 0.7333 & 0.7167 $\pm$ 0.0167 \\
 Logistic Regression & 0.5800 & 0.6000 & 0.5900 $\pm$ 0.0100 \\
-SVM-RBF + PCA35 + Aug & 0.8200 & 0.8467 & 0.8333 $\pm$ 0.0133 \\
-\textbf{SVM-RBF + PCA50 + Aug} & \textbf{0.8200} & \textbf{0.8467} & \textbf{0.8333 $\pm$ 0.0133} \\
+\textbf{SVM-RBF + PCA35 + Aug} & \textbf{0.8200} & \textbf{0.8467} & \textbf{0.8333 $\pm$ 0.0133} \\
+SVM-RBF + PCA50 + Aug & 0.8200 & 0.8467 & 0.8333 $\pm$ 0.0133 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \textbf{Key observations:}
 \begin{enumerate}[noitemsep]
-    \item \textbf{SVM-RBF + PCA50 + Aug} achieves the best result (83.33\%), improving over the 1-NN baseline by 15.03 percentage points and over the non-augmented SVM-RBF + PCA50 by 11.67 percentage points.
-    \item Data augmentation dramatically improves challenge generalization. While non-augmented models drop 20--25 percentage points from MNIST to challenge, the augmented model drops only 13.2 points (96.55\% to 83.33\%), demonstrating that geometric transformations help the model learn writer-invariant features.
+    \item \textbf{SVM-RBF + PCA35 + Aug} (the model selected by CV) achieves the best result (83.33\%), improving over the 1-NN baseline by 15.03 percentage points and over the non-augmented SVM-RBF + PCA50 by 11.67 percentage points.
+    \item Data augmentation dramatically improves challenge generalization. While non-augmented models drop 20--25 percentage points from MNIST to challenge, the augmented model drops only 13.0 points (96.37\% to 83.33\%), demonstrating that geometric transformations help the model learn writer-invariant features.
     \item All non-augmented methods suffer a significant accuracy drop on the challenge data, indicating a substantial domain shift between student-written MNIST digits and professor-written challenge digits.
-    \item QDA + PCA50 (72.33\%) is the best non-augmented method, confirming that PCA-based dimensionality reduction yields robust classifiers.
+    \item QDA + PCA50 (71.00\%) is the best non-augmented method, confirming that PCA-based dimensionality reduction yields robust classifiers.
     \item $k$-NN degrades significantly on the challenge set, suggesting that the local neighborhood structure in pixel space does not transfer well across different writing styles.
 \end{enumerate}
 
@@ -288,7 +303,7 @@ Table~\ref{tab:gridsearch} shows the result of a grid search over PCA components
 
 \subsubsection{Confusion Patterns}
 
-We analyze the confusion matrices of the best-performing model (SVM-RBF + PCA50) across both trials. The top confused digit pairs are:
+We analyze the confusion matrices of the selected model (SVM-RBF + PCA35 + Aug) across both trials. The top confused digit pairs are:
 \begin{itemize}[noitemsep]
     \item $5 \rightarrow 3$: 11 errors (2.75\% of digit 5 samples)
     \item $4 \rightarrow 9$: 9 errors (2.25\%)
@@ -299,19 +314,19 @@ We analyze the confusion matrices of the best-performing model (SVM-RBF + PCA50)
 
 The most frequent confusions involve visually similar digits: 5 vs.~3 (both have a top curve and bottom loop), 4 vs.~9 (share an upper loop), and 9 vs.~7 (both have a top horizontal stroke).
 
-Per-digit accuracy for SVM-RBF + PCA50 is high across all classes, with the lowest accuracy on digit 3 (93.00\%) and digit 9 (92.75\%). Digit 1 is the easiest (98.75\%), followed by digit 0 (97.75\%).
+Per-digit accuracy for the selected model (SVM-RBF + PCA35 + Aug) is high across all classes, with the lowest accuracy on digit 3 (93.00\%) and digit 9 (92.75\%). Digit 1 is the easiest (98.75\%), followed by digit 0 (97.75\%).
 
 \subsubsection{Sample-Level Error Analysis}
 
 To understand whether errors are sample-specific (hard samples) or model-specific, we compare predictions across five models (1-NN, 3-NN, SVM-RBF, SVM-RBF+PCA50, QDA+PCA50) on all 4,000 test samples:
 
 \begin{itemize}[noitemsep]
-    \item \textbf{Hard samples} (all 5 models wrong): 60 samples (1.5\%). These are likely genuinely ambiguous, poorly written, or potentially mislabeled digits. Model improvements will not help here.
-    \item \textbf{Medium samples} (some models wrong): 563 samples (14.1\%). These indicate model capability differences---better models can improve on these.
-    \item \textbf{Easy samples} (all models correct): 3,377 samples (84.4\%).
+    \item \textbf{Hard samples} (all 5 models wrong): 62 samples (1.6\%). These are likely genuinely ambiguous, poorly written, or potentially mislabeled digits. Model improvements will not help here.
+    \item \textbf{Medium samples} (some models wrong): 560 samples (14.0\%). These indicate model capability differences---better models can improve on these.
+    \item \textbf{Easy samples} (all models correct): 3,378 samples (84.5\%).
 \end{itemize}
 
-Among the medium samples, models agree on the wrong prediction for 461 samples but disagree for 102 samples, suggesting that for most errors, even the wrong predictions are structurally similar.
+Among the medium samples, models agree on the wrong prediction for 460 samples but disagree for 100 samples, suggesting that for most errors, even the wrong predictions are structurally similar.
 
 \subsection{Class Distribution}
 
@@ -319,27 +334,27 @@ The MNIST subset is perfectly balanced with 400 samples per digit class (10.0\% 
 
 \section{Discussion}
 
-\textbf{Effect of data augmentation.} Mild geometric augmentation (rotation $\pm 5^\circ$, translation $\pm 1$px, scale $0.95$--$1.05$, $\times 3$ copies per sample) is the single most impactful improvement in this study. It raises MNIST test accuracy from 94.90\% to 96.55\% and challenge accuracy from 71.67\% to 83.33\%. The augmentation introduces controlled diversity into the training set, helping the model learn features invariant to small pose variations. Importantly, stronger augmentation with noise and brightness changes actually degrades performance, confirming that excessive distortion destroys useful signal. The optimal augmentation is light enough to preserve digit structure while providing regularization benefits.
+\textbf{Effect of data augmentation.} Mild geometric augmentation (rotation $\pm 5^\circ$, translation $\pm 1$px, scale $0.95$--$1.05$, $\times 3$ copies per sample) is the single most impactful improvement in this study. It raises MNIST test accuracy from 94.90\% to 96.37\% and challenge accuracy from 71.67\% to 83.33\%. The augmentation introduces controlled diversity into the training set, helping the model learn features invariant to small pose variations. Importantly, stronger augmentation with noise and brightness changes actually degrades performance, confirming that excessive distortion destroys useful signal. The optimal augmentation is light enough to preserve digit structure while providing regularization benefits.
 
-\textbf{Effect of PCA.} PCA consistently improves non-linear methods (SVM-RBF and QDA). For the augmented SVM, reducing from 50 to 35 components yields nearly identical performance, suggesting that 35 components capture sufficient discriminative information. The 35--50 components explain approximately 80--83\% of the variance. By discarding high-frequency noise and redundancy in the 784-dimensional pixel space, PCA allows the classifiers to operate in a more structured, lower-dimensional manifold where class separation is cleaner.
+\textbf{Effect of PCA.} PCA consistently improves non-linear methods (SVM-RBF and QDA). For the augmented SVM, reducing to 35 components is sufficient: the CV-selected model uses PCA35 and achieves performance comparable to PCA50. The 35--50 components explain approximately 80--83\% of the variance. By discarding high-frequency noise and redundancy in the 784-dimensional pixel space, PCA allows the classifiers to operate in a more structured, lower-dimensional manifold where class separation is cleaner.
 
 \textbf{Effect of normalization.} Scaling pixel values to $[0, 1]$ is essential for SVMs with RBF kernels, as the kernel bandwidth $\gamma$ is computed relative to feature scales. Without scaling, pixel value magnitudes dominate the distance computation. Standardization (zero mean, unit variance) works well for Logistic Regression but is unnecessary for $k$-NN and tree-based methods.
 
-\textbf{Linear vs.~non-linear.} The large gap between linear methods (LDA: 78.20\%, SVM-Linear: 85.90\%, Logistic Regression: 86.60\%) and non-linear methods (SVM-RBF: 93.65--96.55\%) confirms that digit classes have complex, non-linear decision boundaries in pixel space. This justifies the use of kernel methods and quadratic discriminant functions.
+\textbf{Linear vs.~non-linear.} The large gap between linear methods (LDA: 72.20\% CV, SVM-Linear: 84.60\% CV, Logistic Regression: 85.50\% CV) and non-linear methods (SVM-RBF: 92.65--95.85\% CV) confirms that digit classes have complex, non-linear decision boundaries in pixel space. This justifies the use of kernel methods and quadratic discriminant functions.
 
-\textbf{Domain shift.} The challenge results highlight a critical issue in handwritten digit recognition: models trained on one writer population do not generalize perfectly to a different writer. Non-augmented models suffer a 20--25 percentage point drop in accuracy. However, data augmentation effectively closes this gap: the augmented model drops only 13.2 points (96.55\% to 83.33\%), demonstrating that geometric transformations help the model learn writer-invariant features. This suggests that data augmentation is a practical and effective technique for improving cross-writer generalization without requiring additional training data or domain adaptation methods.
+\textbf{Domain shift.} The challenge results highlight a critical issue in handwritten digit recognition: models trained on one writer population do not generalize perfectly to a different writer. Non-augmented models suffer a 20--25 percentage point drop in accuracy. However, data augmentation effectively closes this gap: the augmented model drops only 13.0 points (96.37\% to 83.33\%), demonstrating that geometric transformations help the model learn writer-invariant features. This suggests that data augmentation is a practical and effective technique for improving cross-writer generalization without requiring additional training data or domain adaptation methods.
 
 \section{Conclusion}
 
-We conducted a comprehensive empirical evaluation of eleven classifier configurations for handwritten digit classification, including data-augmented variants. All parameters were selected using 3-fold cross-validation on the training data only, with the challenge dataset held out for final evaluation. Our main findings are:
+We conducted a comprehensive empirical evaluation of eleven classifier configurations for handwritten digit classification, including data-augmented variants. Model selection was performed via 3-fold stratified cross-validation on the Trial~1 training data only, ensuring that Trial~2 remains an unbiased validation split. The challenge dataset was completely held out and used only for final evaluation. Our main findings are:
 \begin{enumerate}
-    \item \textbf{SVM with RBF kernel, PCA to 50 components, and mild data augmentation ($\times$3)} achieves the best performance on both the MNIST subset (96.55\%) and the challenge dataset (83.33\%).
-    \item \textbf{Data augmentation is the single most impactful improvement}: it raises challenge accuracy by 11.67 percentage points over the non-augmented model, effectively closing the generalization gap between student-written and professor-written digits. Cross-validation confirms mild augmentation (CV 98.73\%) outperforms both no augmentation (94.45\%) and strong augmentation (60.47\%).
-    \item \textbf{Hyperparameter sensitivity is low in the optimal region.} GridSearchCV over PCA components [20, 25, 30, 35, 40] and SVM $C$ [3, 4, 5, 6, 8] shows a broad plateau around PCA 35--40 and $C=4$ (CV 95.35\%), confirming robust parameter choices.
+    \item \textbf{SVM with RBF kernel, PCA to 35 components, and mild data augmentation ($\times$3)} is selected by cross-validation (CV mean 95.85\%) and achieves 96.37\% mean test accuracy on the MNIST subset (Trial~1: 96.50\%, Trial~2: 96.25\%). On the challenge dataset, the same model achieves 83.33\%.
+    \item \textbf{Data augmentation is the single most impactful improvement}: it raises challenge accuracy by 11.67 percentage points over the non-augmented model, effectively closing the generalization gap between student-written and professor-written digits. Cross-validation confirms mild augmentation outperforms both no augmentation and strong augmentation.
+    \item \textbf{Hyperparameter sensitivity is low in the optimal region.} GridSearchCV over PCA components [20, 25, 30, 35, 40] and SVM $C$ [3, 4, 5, 6, 8] shows a broad plateau around PCA 35--40 and $C=4$, confirming robust parameter choices.
     \item PCA dimensionality reduction significantly benefits non-linear classifiers by removing noise and reducing the curse of dimensionality. Optimal component count is 35--50 (explaining ~80--83\% variance).
     \item Non-linear methods substantially outperform linear baselines, confirming that digit classes require flexible decision boundaries.
-    \item Only 1.5\% of samples are universally misclassified (hard samples), while 14.1\% represent model-capability boundaries where better models can improve.
-    \item The domain shift between MNIST and challenge data is substantial for non-augmented models (20--25 pp drop), but data augmentation reduces this gap to 13.2 pp, demonstrating its effectiveness for learning writer-invariant features.
+    \item Only 1.6\% of samples are universally misclassified (hard samples), while 14.0\% represent model-capability boundaries where better models can improve.
+    \item The domain shift between MNIST and challenge data is substantial for non-augmented models (20--25 pp drop), but data augmentation reduces this gap to 13.0 pp, demonstrating its effectiveness for learning writer-invariant features.
 \end{enumerate}
 
 \section*{Contribution Statement}
