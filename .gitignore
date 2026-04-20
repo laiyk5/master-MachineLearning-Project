@@ -42,6 +42,11 @@ data/raw/*
 data/processed/*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
+# Include dataset files for CI reproducibility
+!data/raw/MINIST/digits4000.mat
+!data/raw/challenge/cdigits.mat
+!data/raw/challenge/cdigits_digits_labels.txt
+!data/raw/challenge/cdigits_digits_vec.txt
 
 # Models (keep structure, ignore large files)
 models/*
