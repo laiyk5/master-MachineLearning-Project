@@ -1,4 +1,4 @@
-\documentclass[11pt,a4paper]{article}
+\documentclass[11pt,a4paper,twocolumn]{article}
 
 % Packages
 \usepackage[margin=2.5cm]{geometry}
@@ -103,19 +103,21 @@ Each training sample is augmented with $n$ synthetic copies, yielding $(1+n) \ti
 \centering
 \caption{Preprocessing strategies per classifier.}
 \label{tab:preprocessing}
+\setlength{\tabcolsep}{2pt}
+\footnotesize
 \begin{tabular}{@{}llll@{}}
 \toprule
-\textbf{Classifier} & \textbf{Normalization} & \textbf{PCA} & \textbf{Augmentation} \\
+\textbf{Clf.} & \textbf{Norm.} & \textbf{PCA} & \textbf{Aug.} \\
 \midrule
-1-NN, 3-NN, 5-NN & None & None & None \\
-LDA & None & None & None \\
-QDA + PCA50 & None & 50 components & None \\
-SVM-Linear & Scale to $[0, 1]$ & None & None \\
-SVM-RBF & Scale to $[0, 1]$ & None & None \\
-SVM-RBF + PCA50 & Scale to $[0, 1]$ & 50 components & None \\
-Logistic Regression & Standard ($\mu=0, \sigma=1$) & None & None \\
-SVM-RBF + PCA35 + Aug & Scale to $[0, 1]$ & 35 components & Mild $\times 3$ \\
-SVM-RBF + PCA50 + Aug & Scale to $[0, 1]$ & 50 components & Mild $\times 3$ \\
+1-NN/3-NN/5-NN & None & -- & -- \\
+LDA & None & -- & -- \\
+QDA + PCA50 & None & 50 & -- \\
+SVM-Linear & Scale $[0,1]$ & -- & -- \\
+SVM-RBF & Scale $[0,1]$ & -- & -- \\
+SVM-RBF + PCA50 & Scale $[0,1]$ & 50 & -- \\
+Logistic Reg. & Standard & -- & -- \\
+SVM-RBF + PCA35 + Aug & Scale $[0,1]$ & 35 & Mild$\times$3 \\
+SVM-RBF + PCA50 + Aug & Scale $[0,1]$ & 50 & Mild$\times$3 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -155,10 +157,11 @@ Results are managed in a unified directory structure: \texttt{results/<datetime>
 
 Table~\ref{tab:cv-results} reports the 3-fold stratified cross-validation scores for all candidate methods on the Trial~1 training data. Table~\ref{tab:final-results} reports the final test accuracy of the selected model on both trials.
 
-\begin{table}[H]
+\begin{table*}[t]
 \centering
 \caption{3-fold stratified cross-validation on Trial~1 training data (2,000 samples). Best CV score in \textbf{bold}.}
 \label{tab:cv-results}
+\small
 \begin{tabular}{@{}lcccc@{}}
 \toprule
 \textbf{Method} & \textbf{Fold 1} & \textbf{Fold 2} & \textbf{Fold 3} & \textbf{CV Mean $\pm$ Std} \\
@@ -176,11 +179,11 @@ Logistic Regression & 0.8396 & 0.8621 & 0.8634 & 0.8550 $\pm$ 0.0109 \\
 SVM-RBF + PCA50 + Aug & 0.9670 & 0.9610 & 0.9474 & 0.9585 $\pm$ 0.0082 \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
-\begin{table}[H]
+\begin{table*}[t]
 \centering
-\caption{Final test accuracy of the selected model (SVM-RBF + PCA35 + Aug) on both predefined trials.}
+\caption{Final test accuracy of the selected model on both predefined trials.}
 \label{tab:final-results}
 \begin{tabular}{@{}lccc@{}}
 \toprule
@@ -189,7 +192,7 @@ SVM-RBF + PCA50 + Aug & 0.9670 & 0.9610 & 0.9474 & 0.9585 $\pm$ 0.0082 \\
 \textbf{SVM-RBF + PCA35 + Aug} & \textbf{0.9650} & \textbf{0.9625} & \textbf{0.9637 $\pm$ 0.0012} \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 \textbf{Key observations:}
 \begin{enumerate}[noitemsep]
@@ -202,45 +205,11 @@ SVM-RBF + PCA50 + Aug & 0.9670 & 0.9610 & 0.9474 & 0.9585 $\pm$ 0.0082 \\
     \item $k$-NN with $k > 1$ does not improve over 1-NN; in fact, 3-NN and 5-NN slightly underperform in CV, suggesting that the nearest neighbor alone is the most reliable predictor in this feature space.
 \end{enumerate}
 
-\subsection{Challenge Dataset Evaluation}
-
-The challenge dataset contains 150 handwritten digits written by the course instructor. Models trained on the MNIST training split are evaluated directly on this data without retraining or parameter tuning. Table~\ref{tab:challenge-results} reports the results.
-
-\begin{table}[H]
-\centering
-\caption{Challenge dataset accuracy (150 samples). Reference 1-NN baseline: 68.33\%.}
-\label{tab:challenge-results}
-\begin{tabular}{@{}lccc@{}}
-\toprule
-\textbf{Method} & \textbf{Trial 1} & \textbf{Trial 2} & \textbf{Mean $\pm$ Std} \\
-\midrule
-1-NN Baseline & 0.6600 & 0.7067 & 0.6833 $\pm$ 0.0233 \\
-3-NN & 0.6667 & 0.6400 & 0.6533 $\pm$ 0.0133 \\
-5-NN & 0.6333 & 0.6467 & 0.6400 $\pm$ 0.0067 \\
-LDA & 0.4533 & 0.4200 & 0.4367 $\pm$ 0.0167 \\
-QDA + PCA50 & 0.6867 & 0.7333 & 0.7100 $\pm$ 0.0233 \\
-SVM-Linear & 0.6133 & 0.5533 & 0.5833 $\pm$ 0.0300 \\
-SVM-RBF & 0.6867 & 0.7000 & 0.6933 $\pm$ 0.0067 \\
-SVM-RBF + PCA50 & 0.7000 & 0.7333 & 0.7167 $\pm$ 0.0167 \\
-Logistic Regression & 0.5800 & 0.6000 & 0.5900 $\pm$ 0.0100 \\
-\textbf{SVM-RBF + PCA35 + Aug} & \textbf{0.8200} & \textbf{0.8467} & \textbf{0.8333 $\pm$ 0.0133} \\
-SVM-RBF + PCA50 + Aug & 0.8200 & 0.8467 & 0.8333 $\pm$ 0.0133 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{Key observations:}
-\begin{enumerate}[noitemsep]
-    \item \textbf{SVM-RBF + PCA35 + Aug} (the model selected by CV) achieves the best result (83.33\%), improving over the 1-NN baseline by 15.03 percentage points and over the non-augmented SVM-RBF + PCA50 by 11.67 percentage points.
-    \item Data augmentation dramatically improves challenge generalization. While non-augmented models drop 20--25 percentage points from MNIST to challenge, the augmented model drops only 13.0 points (96.37\% to 83.33\%), demonstrating that geometric transformations help the model learn writer-invariant features.
-    \item All non-augmented methods suffer a significant accuracy drop on the challenge data, indicating a substantial domain shift between student-written MNIST digits and professor-written challenge digits.
-    \item QDA + PCA50 (71.00\%) is the best non-augmented method, confirming that PCA-based dimensionality reduction yields robust classifiers.
-    \item $k$-NN degrades significantly on the challenge set, suggesting that the local neighborhood structure in pixel space does not transfer well across different writing styles.
-\end{enumerate}
+Challenge dataset results are reported in Appendix~\ref{app:challenge}.
 
 \subsection{Parameter Sensitivity Analysis}
 
-To understand how hyperparameters affect performance, we conduct two controlled sensitivity studies using 3-fold stratified cross-validation on the training data only.
+To understand how hyperparameters affect performance, we conduct a controlled sensitivity study on data augmentation intensity using 3-fold stratified cross-validation on the training data only. A complementary grid search over PCA components and SVM regularization parameter $C$ is reported in Appendix~\ref{app:gridsearch}.
 
 \subsubsection{Data Augmentation Intensity}
 
@@ -250,6 +219,8 @@ Table~\ref{tab:augmentation-cv} compares different augmentation configurations v
 \centering
 \caption{3-fold cross-validation scores for data augmentation strategies.}
 \label{tab:augmentation-cv}
+\setlength{\tabcolsep}{3pt}
+\footnotesize
 \begin{tabular}{@{}lcc@{}}
 \toprule
 \textbf{Configuration} & \textbf{CV Mean} & \textbf{CV Std} \\
@@ -271,33 +242,15 @@ Medium augmentation $\times$5 & 96.45\% & 0.91\% \\
     \item All augmented configurations substantially outperform the non-augmented baseline (95.05\%), confirming that geometric augmentation is beneficial regardless of intensity.
 \end{itemize}
 
-\subsubsection{SVM Hyperparameter and PCA Component Selection}
+To illustrate \emph{why} augmentation is necessary, Figure~\ref{fig:augmentation-necessity} shows test samples that are misclassified without augmentation but correctly classified with mild augmentation. Across both trials, 65 samples (37.0\% and 39.3\% of all errors in Trial~1 and Trial~2, respectively) are fixed solely by introducing small geometric variations during training. Many of these are digits with slight rotations, translations, or stroke variations that the non-augmented model has not seen during training.
 
-Table~\ref{tab:gridsearch} shows the result of a grid search over PCA components and SVM regularization parameter $C$, evaluated via 3-fold cross-validation on the training data.
-
-\begin{table}[H]
+\begin{figure*}[t]
 \centering
-\caption{GridSearchCV results (3-fold CV) for PCA components $\times$ SVM $C$. Best in \textbf{bold}.}
-\label{tab:gridsearch}
-\begin{tabular}{@{}lccccc@{}}
-\toprule
-\textbf{PCA} & $C=3$ & $C=4$ & $C=5$ & $C=6$ & $C=8$ \\
-\midrule
-20 & 95.20\% & 95.35\% & 95.25\% & 95.10\% & 95.15\% \\
-25 & 96.00\% & 95.95\% & 95.80\% & 95.85\% & 95.60\% \\
-30 & 96.00\% & 96.00\% & \textbf{96.25\%} & 96.15\% & 96.10\% \\
-35 & 95.90\% & 95.85\% & 96.00\% & 96.10\% & 96.05\% \\
-40 & 95.65\% & 95.55\% & 95.75\% & 95.70\% & 95.65\% \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{Key findings:}
-\begin{itemize}[noitemsep]
-    \item \textbf{Optimal region: PCA 30, $C=5$.} CV accuracy peaks at 96.25\%, with a broad plateau across PCA 25--35 and $C$ 3--6.
-    \item Performance is relatively stable across the grid: the worst configuration (PCA=40, $C=4$ at 95.55\%) is only 0.70 percentage points below the best, indicating low sensitivity to these hyperparameters in the explored range.
-    \item The chosen configuration (PCA=35, $C=4$) is near-optimal and generalizes well to both test trials, confirming that cross-validation on training data alone is sufficient for parameter selection.
-\end{itemize}
+\includegraphics[width=\textwidth]{figures/augmentation_necessity_combined.png}
+\caption{Samples fixed by data augmentation (SVM-RBF + PCA35). Each panel shows a test image with its true label, the prediction without augmentation, and the prediction with mild geometric augmentation ($\times$3). Green titles indicate the augmented model is correct. These samples represent ambiguous or slightly transformed digits that the non-augmented model fails to recognize.
+}
+\label{fig:augmentation-necessity}
+\end{figure*}
 
 \subsection{Error Analysis}
 
@@ -328,10 +281,6 @@ To understand whether errors are sample-specific (hard samples) or model-specifi
 
 Among the medium samples, models agree on the wrong prediction for 460 samples but disagree for 100 samples, suggesting that for most errors, even the wrong predictions are structurally similar.
 
-\subsection{Class Distribution}
-
-The MNIST subset is perfectly balanced with 400 samples per digit class (10.0\% each). Both predefined train/test splits maintain this balance exactly (200 training / 200 test per class per trial). This eliminates class imbalance as a confounding factor in our experiments.
-
 \section{Discussion}
 
 \textbf{Effect of data augmentation.} Geometric augmentation is the single most impactful improvement in this study. The selected model (mild augmentation, $\times 3$) raises the CV score from 94.25\% (SVM-RBF + PCA50 without augmentation) to 95.85\% and the challenge accuracy from 71.67\% to 83.33\%. Post-hoc sensitivity analysis reveals that stronger augmentation configurations (medium $\times$3: 96.50\%, strong $\times$3: 96.35\%, medium $\times$7: 96.70\%) achieve even higher CV scores, suggesting that the predefined candidate set did not fully explore the optimal augmentation space. All augmented configurations substantially outperform the non-augmented baseline, confirming that geometric transformations help the model learn writer-invariant features.
@@ -350,7 +299,7 @@ We conducted a comprehensive empirical evaluation of eleven classifier configura
 \begin{enumerate}
     \item \textbf{SVM with RBF kernel, PCA to 35 components, and mild data augmentation ($\times$3)} is selected by cross-validation (CV mean 95.85\%) and achieves 96.37\% mean test accuracy on the MNIST subset (Trial~1: 96.50\%, Trial~2: 96.25\%). On the challenge dataset, the same model achieves 83.33\%.
     \item \textbf{Data augmentation is the single most impactful improvement}: it raises challenge accuracy by 11.67 percentage points over the non-augmented model, effectively closing the generalization gap between student-written and professor-written digits. Post-hoc sensitivity analysis suggests that stronger augmentation configurations (medium and strong) can achieve even higher CV scores, indicating further optimization potential.
-    \item \textbf{Hyperparameter sensitivity is low in the explored region.} GridSearchCV over PCA components [20, 25, 30, 35, 40] and SVM $C$ [3, 4, 5, 6, 8] shows a broad plateau with the peak at PCA~30 and $C=5$ (96.25\% CV). The selected configuration (PCA~35, $C=4$) is near-optimal, confirming robust parameter choices.
+    \item \textbf{Hyperparameter sensitivity is low in the explored region.} GridSearchCV over PCA components [20, 25, 30, 35, 40] and SVM $C$ [3, 4, 5, 6, 8] (Appendix~\ref{app:gridsearch}) shows a broad plateau with the peak at PCA~30 and $C=5$ (96.25\% CV). The selected configuration (PCA~35, $C=4$) is near-optimal, confirming robust parameter choices.
     \item PCA dimensionality reduction significantly benefits non-linear classifiers by removing noise and reducing the curse of dimensionality. Optimal component count is 35--50 (explaining ~80--83\% variance).
     \item Non-linear methods substantially outperform linear baselines, confirming that digit classes require flexible decision boundaries.
     \item Only 1.6\% of samples are universally misclassified (hard samples), while 14.0\% represent model-capability boundaries where better models can improve.
@@ -372,5 +321,83 @@ F.~Pedregosa et al.
 ``Scikit-learn: Machine learning in Python.''
 \textit{Journal of Machine Learning Research}, 12:2825--2830, 2011.
 \end{thebibliography}
+
+\clearpage
+
+\appendix
+
+\section{Challenge Dataset Evaluation}
+\label{app:challenge}
+
+The challenge dataset contains 150 handwritten digits written by the course instructor. Models trained on the MNIST training split are evaluated directly on this data without retraining or parameter tuning. Table~\ref{tab:challenge-results} reports the results.
+
+\begin{table*}[t]
+\centering
+\caption{Challenge dataset accuracy (150 samples). Reference 1-NN baseline: 68.33\%.}
+\label{tab:challenge-results}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Method} & \textbf{Trial 1} & \textbf{Trial 2} & \textbf{Mean $\pm$ Std} \\
+\midrule
+1-NN Baseline & 0.6600 & 0.7067 & 0.6833 $\pm$ 0.0233 \\
+3-NN & 0.6667 & 0.6400 & 0.6533 $\pm$ 0.0133 \\
+5-NN & 0.6333 & 0.6467 & 0.6400 $\pm$ 0.0067 \\
+LDA & 0.4533 & 0.4200 & 0.4367 $\pm$ 0.0167 \\
+QDA + PCA50 & 0.6867 & 0.7333 & 0.7100 $\pm$ 0.0233 \\
+SVM-Linear & 0.6133 & 0.5533 & 0.5833 $\pm$ 0.0300 \\
+SVM-RBF & 0.6867 & 0.7000 & 0.6933 $\pm$ 0.0067 \\
+SVM-RBF + PCA50 & 0.7000 & 0.7333 & 0.7167 $\pm$ 0.0167 \\
+Logistic Regression & 0.5800 & 0.6000 & 0.5900 $\pm$ 0.0100 \\
+\textbf{SVM-RBF + PCA35 + Aug} & \textbf{0.8200} & \textbf{0.8467} & \textbf{0.8333 $\pm$ 0.0133} \\
+SVM-RBF + PCA50 + Aug & 0.8200 & 0.8467 & 0.8333 $\pm$ 0.0133 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\textbf{Key observations:}
+\begin{enumerate}[noitemsep]
+    \item \textbf{SVM-RBF + PCA35 + Aug} (the model selected by CV) achieves the best result (83.33\%), improving over the 1-NN baseline by 15.03 percentage points and over the non-augmented SVM-RBF + PCA50 by 11.67 percentage points.
+    \item Data augmentation dramatically improves challenge generalization. While non-augmented models drop 20--25 percentage points from MNIST to challenge, the augmented model drops only 13.0 points (96.37\% to 83.33\%), demonstrating that geometric transformations help the model learn writer-invariant features.
+    \item All non-augmented methods suffer a significant accuracy drop on the challenge data, indicating a substantial domain shift between student-written MNIST digits and professor-written challenge digits.
+    \item QDA + PCA50 (71.00\%) is the best non-augmented method, confirming that PCA-based dimensionality reduction yields robust classifiers.
+    \item $k$-NN degrades significantly on the challenge set, suggesting that the local neighborhood structure in pixel space does not transfer well across different writing styles.
+\end{enumerate}
+
+\section{Class Distribution}
+\label{app:class-distribution}
+
+The MNIST subset is perfectly balanced with 400 samples per digit class (10.0\% each). Both predefined train/test splits maintain this balance exactly (200 training / 200 test per class per trial). This eliminates class imbalance as a confounding factor in our experiments.
+
+\section{SVM Hyperparameter and PCA Component Selection}
+\label{app:gridsearch}
+
+Table~\ref{tab:gridsearch} shows the result of a grid search over PCA components and SVM regularization parameter $C$, evaluated via 3-fold cross-validation on the training data.
+
+\begin{table}[H]
+\centering
+\caption{GridSearchCV results (3-fold CV) for PCA components $\times$ SVM $C$. Best in \textbf{bold}.}
+\label{tab:gridsearch}
+\setlength{\tabcolsep}{2pt}
+\footnotesize
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+\textbf{PCA} & $C=3$ & $C=4$ & $C=5$ & $C=6$ & $C=8$ \\
+\midrule
+20 & 95.20\% & 95.35\% & 95.25\% & 95.10\% & 95.15\% \\
+25 & 96.00\% & 95.95\% & 95.80\% & 95.85\% & 95.60\% \\
+30 & 96.00\% & 96.00\% & \textbf{96.25\%} & 96.15\% & 96.10\% \\
+35 & 95.90\% & 95.85\% & 96.00\% & 96.10\% & 96.05\% \\
+40 & 95.65\% & 95.55\% & 95.75\% & 95.70\% & 95.65\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Key findings:}
+\begin{itemize}[noitemsep]
+    \item \textbf{Optimal region: PCA 30, $C=5$.} CV accuracy peaks at 96.25\%, with a broad plateau across PCA 25--35 and $C$ 3--6.
+    \item Performance is relatively stable across the grid: the worst configuration (PCA=40, $C=4$ at 95.55\%) is only 0.70 percentage points below the best, indicating low sensitivity to these hyperparameters in the explored range.
+    \item The chosen configuration (PCA=35, $C=4$) is near-optimal and generalizes well to both test trials, confirming that cross-validation on training data alone is sufficient for parameter selection.
+\end{itemize}
 
 \end{document}
