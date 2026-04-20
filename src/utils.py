@@ -54,9 +54,32 @@ def get_git_info() -> dict[str, str | bool]:
         return {"commit": "unknown", "dirty": False}
 
 
+def _find_latest_run_dir(base_dir: Path) -> Path | None:
+    """Find the most recent result directory with a valid meta.json."""
+    if not base_dir.exists():
+        return None
+    run_dirs = [
+        d for d in sorted(base_dir.iterdir(), reverse=True)
+        if d.is_dir() and (d / "meta.json").exists()
+    ]
+    return run_dirs[0] if run_dirs else None
+
+
+def _find_matching_run_dir(base_dir: Path, prefix: str) -> Path | None:
+    """Find the most recent result directory whose name starts with prefix."""
+    if not base_dir.exists():
+        return None
+    run_dirs = [
+        d for d in sorted(base_dir.iterdir(), reverse=True)
+        if d.is_dir() and (d / "meta.json").exists() and d.name.startswith(prefix)
+    ]
+    return run_dirs[0] if run_dirs else None
+
+
 def get_result_dir(
     base_dir: str | Path | None = None,
     run_name: str | None = None,
+    reuse: bool = False,
 ) -> Path:
     """Create and return a result directory.
 
@@ -70,18 +93,37 @@ def get_result_dir(
     Args:
         base_dir: Root directory for results. Defaults to ./results.
         run_name: Name for this run. Defaults to current timestamp.
+        reuse: If True and no run_name given, try to reuse the latest
+            existing run directory if it has the same commit hash and
+            is not dirty.
 
     Returns:
-        Path to the newly created result directory.
+        Path to the result directory (new or reused).
     """
     if base_dir is None:
         base_dir = _DEFAULT_BASE
     else:
         base_dir = Path(base_dir)
 
-    name = run_name or datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    result_dir = base_dir / name
-    result_dir.mkdir(parents=True, exist_ok=True)
+    if run_name:
+        result_dir = base_dir / run_name
+        result_dir.mkdir(parents=True, exist_ok=True)
+    elif reuse:
+        git_info = get_git_info()
+        latest = _find_latest_run_dir(base_dir)
+        if latest is not None:
+            with open(latest / "meta.json") as f:
+                meta = json.load(f)
+            if meta.get("commit") == git_info["commit"] and not meta.get("dirty", True):
+                return latest
+        # No reusable run found — create new
+        name = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        result_dir = base_dir / name
+        result_dir.mkdir(parents=True, exist_ok=True)
+    else:
+        name = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        result_dir = base_dir / name
+        result_dir.mkdir(parents=True, exist_ok=True)
 
     # Write meta.json if it doesn't already exist
     meta_path = result_dir / "meta.json"
@@ -118,16 +160,33 @@ def resolve_run_dir(run_dir: str | Path | None = None) -> Path:
 
     Priority:
     1. Explicitly provided run_dir argument.
+       - Path: use directly.
+       - "latest": reuse the most recent result directory.
+       - Partial timestamp (e.g., "20260420"): match most recent run
+         whose name starts with the prefix.
     2. ML_RUN_DIR environment variable.
-    3. Auto-generate a new timestamped directory via get_result_dir().
+    3. Auto-reuse the latest run if same commit and not dirty.
+    4. Auto-generate a new timestamped directory.
 
     Args:
-        run_dir: Explicit path, or None to use env/fallback.
+        run_dir: Explicit path, special keyword, or None for auto.
 
     Returns:
         Path to the result directory.
     """
     if run_dir is not None:
+        run_str = str(run_dir)
+        if run_str.lower() == "latest":
+            latest = _find_latest_run_dir(_DEFAULT_BASE)
+            if latest is None:
+                raise FileNotFoundError("No existing result runs found.")
+            return latest
+        # Check if it looks like a partial timestamp (no slashes, just digits/underscores)
+        if "/" not in run_str and "\\" not in run_str:
+            matched = _find_matching_run_dir(_DEFAULT_BASE, run_str)
+            if matched is not None:
+                return matched
+        # Fall through to treating it as a path
         path = Path(run_dir)
         path.mkdir(parents=True, exist_ok=True)
         return path
@@ -138,7 +197,8 @@ def resolve_run_dir(run_dir: str | Path | None = None) -> Path:
         path.mkdir(parents=True, exist_ok=True)
         return path
 
-    return get_result_dir()
+    # Auto-reuse if same commit and clean workspace
+    return get_result_dir(reuse=True)
 
 
 class _Tee:
