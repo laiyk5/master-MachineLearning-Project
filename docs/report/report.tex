@@ -32,7 +32,7 @@
 \maketitle
 
 \begin{abstract}
-This report presents an empirical study of multiple classification methods for handwritten digit recognition on a 4,000-sample MNIST subset. We compare eleven classifier configurations---including $k$-Nearest Neighbors ($k$-NN), Linear Discriminant Analysis (LDA), Quadratic Discriminant Analysis (QDA), Support Vector Machines (SVM) with linear and RBF kernels, Logistic Regression, and data-augmented variants---using 3-fold stratified cross-validation on the Trial~1 training data for model selection. Feature preprocessing techniques including scaling, Principal Component Analysis (PCA), and geometric data augmentation (rotation, translation, scaling) are investigated. The selected best model, SVM with RBF kernel combined with PCA to 35 components and mild data augmentation ($\times$3), achieves \textbf{96.37\%} mean accuracy on the MNIST test set (Trial~1: 96.50\%, Trial~2: 96.25\%), outperforming the 1-NN baseline of 91.60\%. On a held-out challenge dataset of 150 professor-written digits, the same model achieves \textbf{83.33\%}, a 15.03 percentage point improvement over the baseline. Detailed error analysis reveals that 1.5\% of samples are ``hard'' (misclassified by all models), while 14.0\% are ``medium'' where model capability differences matter.
+This report presents an empirical study of multiple classification methods for handwritten digit recognition on a 4,000-sample MNIST subset. We compare eleven classifier configurations---including $k$-Nearest Neighbors ($k$-NN), Linear Discriminant Analysis (LDA), Quadratic Discriminant Analysis (QDA), Support Vector Machines (SVM) with linear and RBF kernels, Logistic Regression, and data-augmented variants---using 3-fold stratified cross-validation on the Trial~1 training data for model selection. Feature preprocessing techniques including scaling, Principal Component Analysis (PCA), and geometric data augmentation (rotation, translation, scaling) are investigated. The selected best model, SVM with RBF kernel combined with PCA to 35 components and mild data augmentation ($\times$3), achieves \textbf{96.37\%} mean accuracy on the MNIST test set (Trial~1: 96.50\%, Trial~2: 96.25\%), outperforming the 1-NN baseline of 91.60\%. On a held-out challenge dataset of 150 professor-written digits, the same model achieves \textbf{83.33\%}, a 15.03 percentage point improvement over the baseline. Detailed error analysis reveals that 1.6\% of samples are ``hard'' (misclassified by all models), while 14.0\% are ``medium'' where model capability differences matter.
 \end{abstract}
 
 \section{Introduction}
@@ -147,7 +147,7 @@ All experiments were implemented in Python using scikit-learn \cite{pedregosa201
 
 \textbf{Challenge Dataset.} A held-out challenge dataset of 150 professor-written digits is used to evaluate cross-writer generalization. The model selected in Phase~A is trained on each MNIST training split and evaluated on the challenge data \emph{without retraining or parameter tuning}.
 
-Results are managed in a unified directory structure: \texttt{results/<git-hash>/<timestamp>/}, with subdirectories for figures and logs, ensuring reproducibility.
+Results are managed in a unified directory structure: \texttt{results/<datetime>/<script-name>/}, with a \texttt{meta.json} recording the git commit and timestamp, ensuring reproducibility.
 
 \section{Experimental Results}
 
@@ -159,21 +159,21 @@ Table~\ref{tab:cv-results} reports the 3-fold stratified cross-validation scores
 \centering
 \caption{3-fold stratified cross-validation on Trial~1 training data (2,000 samples). Best CV score in \textbf{bold}.}
 \label{tab:cv-results}
-\begin{tabular}{@{}lccc@{}}
+\begin{tabular}{@{}lcccc@{}}
 \toprule
-\textbf{Method} & \textbf{Fold 1} & \textbf{Fold 2} & \textbf{CV Mean $\pm$ Std} \\
+\textbf{Method} & \textbf{Fold 1} & \textbf{Fold 2} & \textbf{Fold 3} & \textbf{CV Mean $\pm$ Std} \\
 \midrule
-1-NN Baseline & 0.9175 & 0.9115 & 0.9065 $\pm$ 0.0116 \\
-3-NN & 0.9115 & 0.8966 & 0.8995 $\pm$ 0.0089 \\
-5-NN & 0.9130 & 0.8906 & 0.8990 $\pm$ 0.0100 \\
-LDA & 0.7271 & 0.7136 & 0.7220 $\pm$ 0.0060 \\
-QDA + PCA50 & 0.9265 & 0.9205 & 0.9220 $\pm$ 0.0021 \\
-SVM-Linear & 0.8441 & 0.8456 & 0.8460 $\pm$ 0.0018 \\
-SVM-RBF & 0.9355 & 0.9265 & 0.9265 $\pm$ 0.0074 \\
-SVM-RBF + PCA50 & 0.9520 & 0.9430 & 0.9425 $\pm$ 0.0080 \\
-Logistic Regression & 0.8396 & 0.8621 & 0.8550 $\pm$ 0.0109 \\
-\textbf{SVM-RBF + PCA35 + Aug} & \textbf{0.9670} & \textbf{0.9565} & \textbf{0.9585 $\pm$ 0.0063} \\
-SVM-RBF + PCA50 + Aug & 0.9670 & 0.9610 & 0.9585 $\pm$ 0.0082 \\
+1-NN Baseline & 0.9175 & 0.9115 & 0.8904 & 0.9065 $\pm$ 0.0116 \\
+3-NN & 0.9115 & 0.8966 & 0.8904 & 0.8995 $\pm$ 0.0089 \\
+5-NN & 0.9130 & 0.8906 & 0.8934 & 0.8990 $\pm$ 0.0100 \\
+LDA & 0.7271 & 0.7136 & 0.7252 & 0.7220 $\pm$ 0.0060 \\
+QDA + PCA50 & 0.9265 & 0.9205 & 0.9189 & 0.9220 $\pm$ 0.0021 \\
+SVM-Linear & 0.8441 & 0.8456 & 0.8483 & 0.8460 $\pm$ 0.0018 \\
+SVM-RBF & 0.9355 & 0.9265 & 0.9174 & 0.9265 $\pm$ 0.0074 \\
+SVM-RBF + PCA50 & 0.9520 & 0.9430 & 0.9324 & 0.9425 $\pm$ 0.0080 \\
+Logistic Regression & 0.8396 & 0.8621 & 0.8634 & 0.8550 $\pm$ 0.0109 \\
+\textbf{SVM-RBF + PCA35 + Aug} & \textbf{0.9670} & \textbf{0.9565} & \textbf{0.9520} & \textbf{0.9585 $\pm$ 0.0063} \\
+SVM-RBF + PCA50 + Aug & 0.9670 & 0.9610 & 0.9474 & 0.9585 $\pm$ 0.0082 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -303,7 +303,7 @@ Table~\ref{tab:gridsearch} shows the result of a grid search over PCA components
 
 \subsubsection{Confusion Patterns}
 
-We analyze the confusion matrices of the selected model (SVM-RBF + PCA35 + Aug) across both trials. The top confused digit pairs are:
+We analyze the confusion matrices of SVM-RBF + PCA50 (the strongest non-augmented model analyzed) across both trials. The top confused digit pairs are:
 \begin{itemize}[noitemsep]
     \item $5 \rightarrow 3$: 11 errors (2.75\% of digit 5 samples)
     \item $4 \rightarrow 9$: 9 errors (2.25\%)
@@ -314,7 +314,7 @@ We analyze the confusion matrices of the selected model (SVM-RBF + PCA35 + Aug) 
 
 The most frequent confusions involve visually similar digits: 5 vs.~3 (both have a top curve and bottom loop), 4 vs.~9 (share an upper loop), and 9 vs.~7 (both have a top horizontal stroke).
 
-Per-digit accuracy for the selected model (SVM-RBF + PCA35 + Aug) is high across all classes, with the lowest accuracy on digit 3 (93.00\%) and digit 9 (92.75\%). Digit 1 is the easiest (98.75\%), followed by digit 0 (97.75\%).
+Per-digit accuracy for SVM-RBF + PCA50 is high across all classes, with the lowest accuracy on digit 3 (93.00\%) and digit 9 (92.75\%). Digit 1 is the easiest (98.75\%), followed by digit 0 (97.75\%).
 
 \subsubsection{Sample-Level Error Analysis}
 
@@ -334,7 +334,7 @@ The MNIST subset is perfectly balanced with 400 samples per digit class (10.0\% 
 
 \section{Discussion}
 
-\textbf{Effect of data augmentation.} Mild geometric augmentation (rotation $\pm 5^\circ$, translation $\pm 1$px, scale $0.95$--$1.05$, $\times 3$ copies per sample) is the single most impactful improvement in this study. It raises MNIST test accuracy from 94.90\% to 96.37\% and challenge accuracy from 71.67\% to 83.33\%. The augmentation introduces controlled diversity into the training set, helping the model learn features invariant to small pose variations. Importantly, stronger augmentation with noise and brightness changes actually degrades performance, confirming that excessive distortion destroys useful signal. The optimal augmentation is light enough to preserve digit structure while providing regularization benefits.
+\textbf{Effect of data augmentation.} Mild geometric augmentation (rotation $\pm 5^\circ$, translation $\pm 1$px, scale $0.95$--$1.05$, $\times 3$ copies per sample) is the single most impactful improvement in this study. It raises the CV score from 94.25\% (SVM-RBF + PCA50 without augmentation) to 95.85\% and the challenge accuracy from 71.67\% to 83.33\%. The augmentation introduces controlled diversity into the training set, helping the model learn features invariant to small pose variations. Importantly, stronger augmentation with noise and brightness changes actually degrades performance, confirming that excessive distortion destroys useful signal. The optimal augmentation is light enough to preserve digit structure while providing regularization benefits.
 
 \textbf{Effect of PCA.} PCA consistently improves non-linear methods (SVM-RBF and QDA). For the augmented SVM, reducing to 35 components is sufficient: the CV-selected model uses PCA35 and achieves performance comparable to PCA50. The 35--50 components explain approximately 80--83\% of the variance. By discarding high-frequency noise and redundancy in the 784-dimensional pixel space, PCA allows the classifiers to operate in a more structured, lower-dimensional manifold where class separation is cleaner.
 
