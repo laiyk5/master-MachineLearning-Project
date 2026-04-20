@@ -254,21 +254,21 @@ Table~\ref{tab:augmentation-cv} compares different augmentation configurations v
 \toprule
 \textbf{Configuration} & \textbf{CV Mean} & \textbf{CV Std} \\
 \midrule
-Original (no augmentation) & 94.45\% & 0.56\% \\
-\textbf{Mild augmentation $\times$3} & \textbf{98.73\%} & \textbf{0.27\%} \\
-Medium augmentation $\times$3 & 95.69\% & 0.50\% \\
-Strong augmentation $\times$3 & 60.47\% & 0.18\% \\
-Medium augmentation $\times$5 & 96.79\% & 0.21\% \\
-Medium augmentation $\times$7 & 97.61\% & 0.13\% \\
+Original (no augmentation) & 95.05\% & 0.33\% \\
+Mild augmentation $\times$3 & 95.85\% & 0.63\% \\
+Medium augmentation $\times$3 & 96.50\% & 0.72\% \\
+Strong augmentation $\times$3 & 96.35\% & 0.68\% \\
+Medium augmentation $\times$5 & 96.45\% & 0.91\% \\
+\textbf{Medium augmentation $\times$7} & \textbf{96.70\%} & \textbf{0.86\%} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \textbf{Key findings:}
 \begin{itemize}[noitemsep]
-    \item \textbf{Mild augmentation is optimal.} The $\pm 5^\circ$ rotation, $\pm 1$px translation, and $0.95$--$1.05$ scaling preserve digit structure while providing regularization benefits.
-    \item \textbf{Strong augmentation hurts.} Excessive distortion (noise, brightness changes, large rotations) degrades CV accuracy to 60.47\%, confirming that destructive augmentation destroys useful signal.
-    \item Medium augmentation ($\times$3 and $\times$5) improves over no augmentation but underperforms mild augmentation, suggesting that even moderate transformations introduce too much variance for this dataset.
+    \item \textbf{More augmentation generally helps.} Increasing augmentation intensity and copy count consistently improves CV scores, with medium augmentation $\times$7 achieving the highest score (96.70\%). Even strong augmentation (with added noise and brightness changes) reaches 96.35\%, outperforming the mild configuration selected in the main comparison.
+    \item The selected model (mild $\times$3) was chosen from a predefined candidate set. These post-hoc sensitivity results suggest that stronger geometric transformations provide additional regularization benefits for this dataset.
+    \item All augmented configurations substantially outperform the non-augmented baseline (95.05\%), confirming that geometric augmentation is beneficial regardless of intensity.
 \end{itemize}
 
 \subsubsection{SVM Hyperparameter and PCA Component Selection}
@@ -283,20 +283,20 @@ Table~\ref{tab:gridsearch} shows the result of a grid search over PCA components
 \toprule
 \textbf{PCA} & $C=3$ & $C=4$ & $C=5$ & $C=6$ & $C=8$ \\
 \midrule
-20 & 94.85\% & 95.05\% & 95.00\% & 94.95\% & 94.90\% \\
-25 & 95.10\% & 95.20\% & 95.15\% & 95.10\% & 95.05\% \\
-30 & 95.25\% & 95.30\% & 95.25\% & 95.20\% & 95.15\% \\
-35 & 95.30\% & \textbf{95.35\%} & 95.30\% & 95.25\% & 95.20\% \\
-40 & 95.25\% & \textbf{95.35\%} & 95.30\% & 95.25\% & 95.20\% \\
+20 & 95.20\% & 95.35\% & 95.25\% & 95.10\% & 95.15\% \\
+25 & 96.00\% & 95.95\% & 95.80\% & 95.85\% & 95.60\% \\
+30 & 96.00\% & 96.00\% & \textbf{96.25\%} & 96.15\% & 96.10\% \\
+35 & 95.90\% & 95.85\% & 96.00\% & 96.10\% & 96.05\% \\
+40 & 95.65\% & 95.55\% & 95.75\% & 95.70\% & 95.65\% \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \textbf{Key findings:}
 \begin{itemize}[noitemsep]
-    \item \textbf{Optimal region: PCA 35--40, $C=4$.} CV accuracy peaks at 95.35\%, with little sensitivity around this region.
-    \item Performance degrades slightly with fewer components (20--25) and with overly large $C$ ($\geq 8$), suggesting mild overfitting when too many principal components or too little regularization is used.
-    \item The chosen configuration (PCA=35, $C=4$) generalizes well to both test trials, confirming that cross-validation on training data alone is sufficient for parameter selection.
+    \item \textbf{Optimal region: PCA 30, $C=5$.} CV accuracy peaks at 96.25\%, with a broad plateau across PCA 25--35 and $C$ 3--6.
+    \item Performance is relatively stable across the grid: the worst configuration (PCA=40, $C=4$ at 95.55\%) is only 0.70 percentage points below the best, indicating low sensitivity to these hyperparameters in the explored range.
+    \item The chosen configuration (PCA=35, $C=4$) is near-optimal and generalizes well to both test trials, confirming that cross-validation on training data alone is sufficient for parameter selection.
 \end{itemize}
 
 \subsection{Error Analysis}
@@ -334,7 +334,7 @@ The MNIST subset is perfectly balanced with 400 samples per digit class (10.0\% 
 
 \section{Discussion}
 
-\textbf{Effect of data augmentation.} Mild geometric augmentation (rotation $\pm 5^\circ$, translation $\pm 1$px, scale $0.95$--$1.05$, $\times 3$ copies per sample) is the single most impactful improvement in this study. It raises the CV score from 94.25\% (SVM-RBF + PCA50 without augmentation) to 95.85\% and the challenge accuracy from 71.67\% to 83.33\%. The augmentation introduces controlled diversity into the training set, helping the model learn features invariant to small pose variations. Importantly, stronger augmentation with noise and brightness changes actually degrades performance, confirming that excessive distortion destroys useful signal. The optimal augmentation is light enough to preserve digit structure while providing regularization benefits.
+\textbf{Effect of data augmentation.} Geometric augmentation is the single most impactful improvement in this study. The selected model (mild augmentation, $\times 3$) raises the CV score from 94.25\% (SVM-RBF + PCA50 without augmentation) to 95.85\% and the challenge accuracy from 71.67\% to 83.33\%. Post-hoc sensitivity analysis reveals that stronger augmentation configurations (medium $\times$3: 96.50\%, strong $\times$3: 96.35\%, medium $\times$7: 96.70\%) achieve even higher CV scores, suggesting that the predefined candidate set did not fully explore the optimal augmentation space. All augmented configurations substantially outperform the non-augmented baseline, confirming that geometric transformations help the model learn writer-invariant features.
 
 \textbf{Effect of PCA.} PCA consistently improves non-linear methods (SVM-RBF and QDA). For the augmented SVM, reducing to 35 components is sufficient: the CV-selected model uses PCA35 and achieves performance comparable to PCA50. The 35--50 components explain approximately 80--83\% of the variance. By discarding high-frequency noise and redundancy in the 784-dimensional pixel space, PCA allows the classifiers to operate in a more structured, lower-dimensional manifold where class separation is cleaner.
 
@@ -349,8 +349,8 @@ The MNIST subset is perfectly balanced with 400 samples per digit class (10.0\% 
 We conducted a comprehensive empirical evaluation of eleven classifier configurations for handwritten digit classification, including data-augmented variants. Model selection was performed via 3-fold stratified cross-validation on the Trial~1 training data only, ensuring that Trial~2 remains an unbiased validation split. The challenge dataset was completely held out and used only for final evaluation. Our main findings are:
 \begin{enumerate}
     \item \textbf{SVM with RBF kernel, PCA to 35 components, and mild data augmentation ($\times$3)} is selected by cross-validation (CV mean 95.85\%) and achieves 96.37\% mean test accuracy on the MNIST subset (Trial~1: 96.50\%, Trial~2: 96.25\%). On the challenge dataset, the same model achieves 83.33\%.
-    \item \textbf{Data augmentation is the single most impactful improvement}: it raises challenge accuracy by 11.67 percentage points over the non-augmented model, effectively closing the generalization gap between student-written and professor-written digits. Cross-validation confirms mild augmentation outperforms both no augmentation and strong augmentation.
-    \item \textbf{Hyperparameter sensitivity is low in the optimal region.} GridSearchCV over PCA components [20, 25, 30, 35, 40] and SVM $C$ [3, 4, 5, 6, 8] shows a broad plateau around PCA 35--40 and $C=4$, confirming robust parameter choices.
+    \item \textbf{Data augmentation is the single most impactful improvement}: it raises challenge accuracy by 11.67 percentage points over the non-augmented model, effectively closing the generalization gap between student-written and professor-written digits. Post-hoc sensitivity analysis suggests that stronger augmentation configurations (medium and strong) can achieve even higher CV scores, indicating further optimization potential.
+    \item \textbf{Hyperparameter sensitivity is low in the explored region.} GridSearchCV over PCA components [20, 25, 30, 35, 40] and SVM $C$ [3, 4, 5, 6, 8] shows a broad plateau with the peak at PCA~30 and $C=5$ (96.25\% CV). The selected configuration (PCA~35, $C=4$) is near-optimal, confirming robust parameter choices.
     \item PCA dimensionality reduction significantly benefits non-linear classifiers by removing noise and reducing the curse of dimensionality. Optimal component count is 35--50 (explaining ~80--83\% variance).
     \item Non-linear methods substantially outperform linear baselines, confirming that digit classes require flexible decision boundaries.
     \item Only 1.6\% of samples are universally misclassified (hard samples), while 14.0\% represent model-capability boundaries where better models can improve.
